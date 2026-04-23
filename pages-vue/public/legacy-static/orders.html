@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>派医工单 - 老年人监护系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background-color: #f0f2f5;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 20px 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { font-size: 24px; margin-bottom: 5px; }
+        .header p { font-size: 14px; opacity: 0.9; }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #5a6fd6; }
+        .btn-outline {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        .btn-success { background: #4caf50; color: white; }
+        .btn-warning { background: #ff9800; color: white; }
+        .btn-danger { background: #f44336; color: white; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        .stat-card.active { border-color: #667eea; }
+        .stat-card.pending { border-left: 4px solid #ff9800; }
+        .stat-card.processing { border-left: 4px solid #2196f3; }
+        .stat-card.completed { border-left: 4px solid #4caf50; }
+        .stat-card.timeout { border-left: 4px solid #f44336; }
+        .stat-card i {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .stat-card.pending i { color: #ff9800; }
+        .stat-card.processing i { color: #2196f3; }
+        .stat-card.completed i { color: #4caf50; }
+        .stat-card.timeout i { color: #f44336; }
+        .stat-card.all i { color: #667eea; }
+        .stat-card h3 {
+            font-size: 32px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .stat-card p {
+            color: #666;
+            font-size: 13px;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            padding: 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card-header h4 {
+            color: #333;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card-body { padding: 20px; }
+        .filter-bar {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .filter-bar select, .filter-bar input {
+            padding: 8px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .order-list { display: flex; flex-direction: column; gap: 15px; }
+        .order-item {
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+        .order-item:hover { box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .order-item.urgent {
+            border-left: 4px solid #f44336;
+            background: #fff5f5;
+        }
+        .order-item.normal {
+            border-left: 4px solid #ff9800;
+            background: #fffaf0;
+        }
+        .order-item.routine {
+            border-left: 4px solid #4caf50;
+            background: #f1f8e9;
+        }
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        .order-info h5 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        .order-info p {
+            color: #666;
+            font-size: 13px;
+        }
+        .order-meta {
+            display: flex;
+            gap: 20px;
+            text-align: right;
+        }
+        .order-meta-item {
+            text-align: center;
+        }
+        .order-meta-item .label {
+            font-size: 11px;
+            color: #999;
+            margin-bottom: 3px;
+        }
+        .order-meta-item .value {
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+        .order-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+        .order-detail {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+        }
+        .order-detail h6 {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 5px;
+        }
+        .order-detail p {
+            font-size: 14px;
+            color: #333;
+        }
+        .order-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid #f0f0f0;
+        }
+        .status-flow {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .status-step {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            background: #e0e0e0;
+            color: #666;
+        }
+        .status-step.active {
+            background: #667eea;
+            color: white;
+        }
+        .status-step.done {
+            background: #4caf50;
+            color: white;
+        }
+        .status-arrow {
+            color: #ccc;
+            font-size: 10px;
+        }
+        .order-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .priority-tag {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .priority-tag.urgent { background: #f44336; color: white; }
+        .priority-tag.normal { background: #ff9800; color: white; }
+        .priority-tag.routine { background: #4caf50; color: white; }
+        .timeout-badge {
+            background: #f44336;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            margin-left: 10px;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal.show { display: flex; }
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h4 { font-size: 18px; color: #333; }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #999;
+        }
+        .modal-body { padding: 20px; }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .doctor-select {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        .doctor-option {
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .doctor-option:hover { border-color: #667eea; }
+        .doctor-option.selected { border-color: #667eea; background: #f0f4ff; }
+        .doctor-option .name {
+            font-size: 15px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .doctor-option .info {
+            font-size: 12px;
+            color: #666;
+        }
+        .doctor-option .status {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            margin-top: 5px;
+        }
+        .doctor-option .status.online { background: #e8f5e9; color: #4caf50; }
+        .doctor-option .status.busy { background: #fff3e0; color: #ff9800; }
+        .ai-recommend {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .ai-recommend h5 {
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .ai-recommend p {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        @media (max-width: 768px) {
+            .stats-row { grid-template-columns: repeat(3, 1fr); }
+            .order-body { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1><i class="fas fa-clipboard-list"></i> 派医工单</h1>
+            <p>工单管理 · 任务调度 · 状态跟踪</p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <a href="/home" target="_top" class="btn btn-outline"><i class="fas fa-arrow-left"></i> 返回</a>
+            <button class="btn btn-primary" id="createOrderBtn" data-require-role="admin,service" onclick="showCreateModal()"><i class="fas fa-plus"></i> 创建工单</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="stats-row">
+            <div class="stat-card all active" onclick="filterOrders('all')">
+                <i class="fas fa-list"></i>
+                <h3>156</h3>
+                <p>全部工单</p>
+            </div>
+            <div class="stat-card pending" onclick="filterOrders('pending')">
+                <i class="fas fa-clock"></i>
+                <h3>8</h3>
+                <p>待接单</p>
+            </div>
+            <div class="stat-card processing" onclick="filterOrders('processing')">
+                <i class="fas fa-spinner"></i>
+                <h3>5</h3>
+                <p>进行中</p>
+            </div>
+            <div class="stat-card completed" onclick="filterOrders('completed')">
+                <i class="fas fa-check-circle"></i>
+                <h3>138</h3>
+                <p>已完成</p>
+            </div>
+            <div class="stat-card timeout" onclick="filterOrders('timeout')">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>3</h3>
+                <p>超时未处理</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h4><i class="fas fa-filter"></i> 筛选条件</h4>
+            </div>
+            <div class="card-body">
+                <div class="filter-bar">
+                    <select id="urgencyFilter">
+                        <option value="">全部紧急程度</option>
+                        <option value="紧急">紧急</option>
+                        <option value="一般">一般</option>
+                        <option value="常规">常规</option>
+                    </select>
+                    <input id="createdDateFilter" type="date" placeholder="创建时间">
+                    <input id="keywordFilter" type="text" placeholder="搜索老人姓名/工单号...">
+                    <button class="btn btn-primary btn-sm" id="applyFilterBtn"><i class="fas fa-search"></i> 筛选</button>
+                    <button class="btn btn-sm" id="resetFilterBtn" style="background:#f0f0f0;color:#333;">重置</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h4><i class="fas fa-list-alt"></i> 工单列表</h4>
+                <span id="ordersCountText" style="color: #666; font-size: 13px;">共 0 条工单</span>
+            </div>
+            <div class="card-body">
+                <div class="order-list"></div>
+                <div class="pagination" style="margin-top:16px; display:flex; align-items:center; gap:8px; justify-content:flex-end;">
+                    <button class="btn btn-sm" id="ordersPrevPageBtn" style="background:#f0f0f0;color:#333;">上一页</button>
+                    <span id="ordersPaginationInfo" style="color:#666;font-size:13px;">第 1 / 1 页</span>
+                    <button class="btn btn-sm" id="ordersNextPageBtn" style="background:#f0f0f0;color:#333;">下一页</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="createModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4><i class="fas fa-plus-circle"></i> 创建派医工单</h4>
+                <button class="modal-close" onclick="hideCreateModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="ai-recommend">
+                    <h5><i class="fas fa-robot"></i> AI智能推荐</h5>
+                    <p>根据病情描述和医生专长、当前位置，推荐 <strong>王强军</strong> 接单，预计15分钟到达。该医生擅长心血管疾病，当前距离最近。</p>
+                </div>
+                
+                <div class="form-group">
+                    <label>选择老人</label>
+                    <select id="elderSelect">
+                        <option value="">请选择老人</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>病情描述</label>
+                    <textarea id="descriptionInput" placeholder="请输入病情描述..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>紧急程度</label>
+                    <select id="urgencySelect">
+                        <option value="紧急">紧急 - 需立即处理</option>
+                        <option value="一般" selected>一般 - 今日内处理</option>
+                        <option value="常规">常规 - 预约处理</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>选择医生</label>
+                    <div class="doctor-select">
+                        <div class="doctor-option selected">
+                            <div class="name"><i class="fas fa-star" style="color: #ffa000;"></i> 王强军</div>
+                            <div class="info">心血管内科 · 从业15年</div>
+                            <span class="status online">在线 · 距离0.8km</span>
+                        </div>
+                        <div class="doctor-option">
+                            <div class="name">李芳华</div>
+                            <div class="info">全科医学 · 从业10年</div>
+                            <span class="status online">在线 · 距离1.2km</span>
+                        </div>
+                        <div class="doctor-option">
+                            <div class="name">张伟明</div>
+                            <div class="info">内分泌科 · 从业8年</div>
+                            <span class="status busy">出诊中 · 距离2.0km</span>
+                        </div>
+                        <div class="doctor-option">
+                            <div class="name">陈静怡</div>
+                            <div class="info">神经内科 · 从业12年</div>
+                            <span class="status online">在线 · 距离1.5km</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>期望到达时间</label>
+                    <input type="datetime-local">
+                </div>
+                
+                <div class="form-group">
+                    <label>备注信息</label>
+                    <textarea placeholder="其他需要说明的信息..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" style="background: #f0f0f0; color: #333;" onclick="hideCreateModal()">取消</button>
+                <button class="btn btn-primary" data-require-role="admin,service"><i class="fas fa-paper-plane"></i> 创建工单</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        if (!requirePagePermission('orders')) {
+            document.body.innerHTML = '<div style="text-align: center; padding: 100px; font-size: 18px; color: #666;">无访问权限，正在返回首页...</div>';
+        }
+        
+        let elderlyList = [];
+        let doctorList = [];
+        let selectedDoctorId = null;
+        let currentFilter = 'all';
+        let pendingDispatchOrderId = null;
+        let allOrders = [];
+        let filteredOrders = [];
+        let ordersCurrentPage = 1;
+        const ORDERS_PAGE_SIZE = 8;
+        const timeoutMinutes = 30;
+        const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+
+        function canDispatchOrder() {
+            return ['admin', 'service'].includes(currentUser.role);
+        }
+
+        function canOperateOrderStatus() {
+            return ['admin', 'service', 'doctor'].includes(currentUser.role);
+        }
+
+        function canAcceptOrder() {
+            return currentUser.role === 'doctor';
+        }
+
+        function canAcceptOrderFor(order) {
+            if (!canAcceptOrder()) return false;
+            // 医生仅对“分配给自己且待接单”的工单展示接单按钮
+            return order && order.status === '待接单' && (!!order.doctor_name) && (order.doctor_name === currentUser.realName);
+        }
+
+        function nextStatus(status) {
+            const flow = {
+                '已接单': '出发中',
+                '出发中': '已到达',
+                '已到达': '处置中',
+                '处置中': '已完成'
+            };
+            return flow[status] || null;
+        }
+
+        async function initPage() {
+            try {
+                console.log('开始初始化页面...');
+                const [elderlyRes, doctorsRes] = await Promise.all([
+                    api.elderly.getList({ pageSize: 100 }),
+                    api.doctors.getList()
+                ]);
+                
+                console.log('老年人API返回:', elderlyRes);
+                console.log('医生API返回:', doctorsRes);
+                
+                if (elderlyRes.success) {
+                    elderlyList = elderlyRes.data.list;
+                    console.log('老年人列表:', elderlyList);
+                    renderElderlySelect();
+                } else {
+                    console.error('获取老年人列表失败:', elderlyRes.message);
+                    alert('获取老年人列表失败，请刷新页面重试');
+                }
+                
+                if (doctorsRes.success) {
+                    doctorList = doctorsRes.data;
+                    console.log('医生列表:', doctorList);
+                    renderDoctorSelect();
+                } else {
+                    console.error('获取医生列表失败:', doctorsRes.message);
+                    alert('获取医生列表失败，请刷新页面重试');
+                }
+                
+                await loadOrders();
+                const createBtn = document.getElementById('createOrderBtn');
+                if (createBtn && !canDispatchOrder()) {
+                    createBtn.disabled = true;
+                    createBtn.style.opacity = '0.6';
+                    createBtn.title = '当前账号无派医创建权限';
+                }
+            } catch (error) {
+                console.error('初始化页面失败:', error);
+                alert('初始化失败: ' + error.message);
+            }
+        }
+
+        function renderElderlySelect() {
+            const select = document.getElementById('elderSelect');
+            select.innerHTML = '<option value="">请选择老人</option>';
+            elderlyList.forEach(e => {
+                select.innerHTML += `<option value="${e.id}">${e.name} - ${e.gender} - ${e.risk_level}</option>`;
+            });
+            if (elderlyList.length === 0) {
+                select.innerHTML = '<option value="">暂无可选老人（请检查后端数据/登录态）</option>';
+            }
+        }
+
+        function renderDoctorSelect() {
+            const container = document.querySelector('.doctor-select');
+            container.innerHTML = '';
+            doctorList.forEach(d => {
+                const statusClass = d.status === '在线' ? 'online' : (d.status === '忙碌' ? 'busy' : '');
+                container.innerHTML += `
+                    <div class="doctor-option" data-id="${d.id}" onclick="selectDoctor(${d.id})">
+                        <div class="name">${d.name}</div>
+                        <div class="info">${d.specialization || '全科'} · ${d.hospital || '社区医院'}</div>
+                        <span class="status ${statusClass}">${d.status} · 评分${d.rating}</span>
+                    </div>
+                `;
+            });
+        }
+
+        function selectDoctor(id) {
+            selectedDoctorId = id;
+            document.querySelectorAll('.doctor-option').forEach(o => o.classList.remove('selected'));
+            document.querySelector(`.doctor-option[data-id="${id}"]`).classList.add('selected');
+        }
+
+        function parseOrderTime(value) {
+            if (!value) return null;
+            const normalized = String(value).replace(" ", "T");
+            const date = new Date(normalized);
+            return Number.isNaN(date.getTime()) ? null : date;
+        }
+
+        function isTimeoutOrder(order) {
+            if (!order || order.status !== '待接单') return false;
+            const created = parseOrderTime(order.created_at);
+            if (!created) return false;
+            return (Date.now() - created.getTime()) / (1000 * 60) >= timeoutMinutes;
+        }
+
+        function isProcessingStatus(status) {
+            return ['已接单', '出发中', '已到达', '处置中'].includes(status);
+        }
+
+        function applyOrderFilters(orders) {
+            const urgency = document.getElementById('urgencyFilter')?.value || '';
+            const createdDate = document.getElementById('createdDateFilter')?.value || '';
+            const keyword = (document.getElementById('keywordFilter')?.value || '').trim().toLowerCase();
+
+            return (orders || []).filter((order) => {
+                if (currentFilter === 'pending' && order.status !== '待接单') return false;
+                if (currentFilter === 'processing' && !isProcessingStatus(order.status)) return false;
+                if (currentFilter === 'completed' && order.status !== '已完成') return false;
+                if (currentFilter === 'timeout' && !isTimeoutOrder(order)) return false;
+
+                if (urgency && order.urgency !== urgency) return false;
+
+                const createdAt = parseOrderTime(order.created_at);
+                if (createdDate) {
+                    if (!createdAt) return false;
+                    const dayStart = new Date(`${createdDate}T00:00:00`);
+                    const dayEnd = new Date(`${createdDate}T23:59:59`);
+                    if (createdAt < dayStart || createdAt > dayEnd) return false;
+                }
+
+                if (keyword) {
+                    const target = `${order.order_no || ''} ${order.elderly_name || ''} ${order.description || ''}`.toLowerCase();
+                    if (!target.includes(keyword)) return false;
+                }
+                return true;
+            });
+        }
+
+        function updateStatCards(orders) {
+            const source = orders || [];
+            const total = source.length;
+            const pending = source.filter((o) => o.status === '待接单').length;
+            const processing = source.filter((o) => isProcessingStatus(o.status)).length;
+            const completed = source.filter((o) => o.status === '已完成').length;
+            const timeout = source.filter((o) => isTimeoutOrder(o)).length;
+            const cards = document.querySelectorAll('.stats-row .stat-card h3');
+            if (cards[0]) cards[0].textContent = total;
+            if (cards[1]) cards[1].textContent = pending;
+            if (cards[2]) cards[2].textContent = processing;
+            if (cards[3]) cards[3].textContent = completed;
+            if (cards[4]) cards[4].textContent = timeout;
+        }
+
+        async function loadOrders() {
+            try {
+                const res = await api.orders.getList({});
+                if (res.success) {
+                    allOrders = res.data.list || [];
+                    filteredOrders = applyOrderFilters(allOrders);
+                    renderOrdersPage();
+                    updateStats(filteredOrders.length);
+                    updateStatCards(allOrders);
+                }
+            } catch (error) {
+                console.error('加载工单失败:', error);
+            }
+        }
+
+        function renderOrdersPage() {
+            const total = filteredOrders.length;
+            const totalPages = Math.max(1, Math.ceil(total / ORDERS_PAGE_SIZE));
+            if (ordersCurrentPage > totalPages) ordersCurrentPage = totalPages;
+            if (ordersCurrentPage < 1) ordersCurrentPage = 1;
+            const start = (ordersCurrentPage - 1) * ORDERS_PAGE_SIZE;
+            const pageList = filteredOrders.slice(start, start + ORDERS_PAGE_SIZE);
+            renderOrders(pageList);
+            updateOrdersPagination(totalPages, total);
+        }
+
+        function updateOrdersPagination(totalPages, total) {
+            const info = document.getElementById('ordersPaginationInfo');
+            const prev = document.getElementById('ordersPrevPageBtn');
+            const next = document.getElementById('ordersNextPageBtn');
+            if (info) info.textContent = `第 ${ordersCurrentPage} / ${totalPages} 页（共 ${total} 条）`;
+            if (prev) prev.disabled = ordersCurrentPage <= 1;
+            if (next) next.disabled = ordersCurrentPage >= totalPages;
+        }
+
+        function renderOrders(orders) {
+            const container = document.querySelector('.order-list');
+            if (!orders || orders.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;">暂无工单数据</div>';
+                return;
+            }
+            
+            container.innerHTML = orders.map(order => {
+                const urgencyClass = order.urgency === '紧急' ? 'urgent' : (order.urgency === '一般' ? 'normal' : 'routine');
+                const urgencyTag = order.urgency === '紧急' ? 'urgent' : (order.urgency === '一般' ? 'normal' : 'routine');
+                
+                return `
+                    <div class="order-item ${urgencyClass}">
+                        <div class="order-header">
+                            <div class="order-info">
+                                <h5>
+                                    <i class="fas fa-user"></i> ${order.elderly_name || '未知'} 
+                                    <span class="priority-tag ${urgencyTag}">${order.urgency || '一般'}</span>
+                                </h5>
+                                <p><i class="fas fa-map-marker-alt"></i> ${order.address || '未知地址'}</p>
+                            </div>
+                            <div class="order-meta">
+                                <div class="order-meta-item">
+                                    <div class="label">工单号</div>
+                                    <div class="value">${order.order_no}</div>
+                                </div>
+                                <div class="order-meta-item">
+                                    <div class="label">状态</div>
+                                    <div class="value">${order.status}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="order-body">
+                            <div class="order-detail">
+                                <h6>病情描述</h6>
+                                <p>${order.description || '无'}</p>
+                            </div>
+                            <div class="order-detail">
+                                <h6>指派医生</h6>
+                                <p>${order.doctor_name || '待指派'}</p>
+                            </div>
+                            <div class="order-detail">
+                                <h6>创建时间</h6>
+                                <p>${order.created_at || '-'}</p>
+                            </div>
+                        </div>
+                        <div class="order-footer">
+                            <div class="status-flow">
+                                <span class="status-step ${order.status === '待接单' ? 'active' : (['已接单','出发中','已到达','处置中','已完成'].includes(order.status) ? 'done' : '')}">待接单</span>
+                                <i class="fas fa-chevron-right status-arrow"></i>
+                                <span class="status-step ${order.status === '已接单' ? 'active' : (['出发中','已到达','处置中','已完成'].includes(order.status) ? 'done' : '')}">已接单</span>
+                                <i class="fas fa-chevron-right status-arrow"></i>
+                                <span class="status-step ${order.status === '已完成' ? 'done' : ''}">已完成</span>
+                            </div>
+                            <div class="order-actions">
+                                ${order.status === '待接单' ? (canDispatchOrder()
+                                    ? `<button class="btn btn-primary btn-sm" onclick="openDispatchModal(${order.id}, '${(order.elderly_name || '').replace(/'/g, "\\'")}', '${(order.description || '').replace(/'/g, "\\'")}', ${order.elderly_id || 'null'})"><i class="fas fa-user-md"></i> 立即派医</button>`
+                                    : (canAcceptOrderFor(order)
+                                        ? `<button class="btn btn-primary btn-sm" onclick="updateOrderStatus(${order.id}, '已接单')"><i class="fas fa-handshake"></i> 接单</button>`
+                                        : `<button class="btn btn-sm" style="background:#f0f0f0;color:#999;cursor:not-allowed;" disabled><i class="fas fa-lock"></i> 无派医权限</button>`)) : ''}
+                                ${(canOperateOrderStatus() && nextStatus(order.status))
+                                    ? `<button class="btn btn-primary btn-sm" onclick="updateOrderStatus(${order.id}, '${nextStatus(order.status)}')"><i class="fas fa-arrow-right"></i> 更新为${nextStatus(order.status)}</button>`
+                                    : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateStats(total) {
+            const text = document.getElementById('ordersCountText');
+            if (text) text.textContent = `共 ${total} 条工单`;
+        }
+
+        function filterOrders(type) {
+            currentFilter = type;
+            ordersCurrentPage = 1;
+            document.querySelectorAll('.stat-card').forEach(card => card.classList.remove('active'));
+            const classMap = { all: '.all', pending: '.pending', processing: '.processing', completed: '.completed', timeout: '.timeout' };
+            const targetCard = document.querySelector(`.stat-card${classMap[type] || ''}`);
+            if (targetCard) targetCard.classList.add('active');
+            loadOrders();
+        }
+
+        function bindFilterEvents() {
+            document.getElementById('applyFilterBtn')?.addEventListener('click', () => {
+                ordersCurrentPage = 1;
+                loadOrders();
+            });
+            document.getElementById('resetFilterBtn')?.addEventListener('click', () => {
+                document.getElementById('urgencyFilter').value = '';
+                document.getElementById('createdDateFilter').value = '';
+                document.getElementById('keywordFilter').value = '';
+                currentFilter = 'all';
+                filterOrders('all');
+            });
+            ['urgencyFilter', 'createdDateFilter'].forEach((id) => {
+                document.getElementById(id)?.addEventListener('change', () => {
+                    ordersCurrentPage = 1;
+                    loadOrders();
+                });
+            });
+            document.getElementById('keywordFilter')?.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    ordersCurrentPage = 1;
+                    loadOrders();
+                }
+            });
+            document.getElementById('ordersPrevPageBtn')?.addEventListener('click', () => {
+                if (ordersCurrentPage <= 1) return;
+                ordersCurrentPage -= 1;
+                renderOrdersPage();
+            });
+            document.getElementById('ordersNextPageBtn')?.addEventListener('click', () => {
+                const totalPages = Math.max(1, Math.ceil(filteredOrders.length / ORDERS_PAGE_SIZE));
+                if (ordersCurrentPage >= totalPages) return;
+                ordersCurrentPage += 1;
+                renderOrdersPage();
+            });
+        }
+
+        function openDispatchModal(orderId, elderlyName = '', description = '', elderlyId = null) {
+            pendingDispatchOrderId = orderId;
+            return showCreateModal(elderlyName, description, elderlyId);
+        }
+
+        async function showCreateModal(elderlyName = '', description = '', elderlyId = null) {
+            if (!canDispatchOrder()) {
+                alert('当前账号无派医创建权限');
+                return;
+            }
+            // 每次打开都尝试刷新可选数据，避免页面停留太久导致数据过期
+            try {
+                const [elderlyRes, doctorsRes] = await Promise.all([
+                    api.elderly.getList({ pageSize: 100 }),
+                    api.doctors.getList()
+                ]);
+                if (elderlyRes.success) {
+                    elderlyList = elderlyRes.data.list || [];
+                    renderElderlySelect();
+                }
+                if (doctorsRes.success) {
+                    doctorList = doctorsRes.data || [];
+                    renderDoctorSelect();
+                    if (doctorList.length > 0) {
+                        selectDoctor(doctorList[0].id);
+                    }
+                }
+            } catch (error) {
+                console.error('打开创建弹窗时加载数据失败:', error);
+            }
+            if (elderlyId) {
+                document.getElementById('elderSelect').value = String(elderlyId);
+            } else if (elderlyName) {
+                const matched = elderlyList.find(e => e.name === elderlyName);
+                if (matched) document.getElementById('elderSelect').value = String(matched.id);
+            }
+            if (description) {
+                document.getElementById('descriptionInput').value = description;
+            }
+            document.getElementById('createModal').classList.add('show');
+        }
+
+        function hideCreateModal() {
+            document.getElementById('createModal').classList.remove('show');
+            document.getElementById('elderSelect').value = '';
+            document.getElementById('descriptionInput').value = '';
+            document.getElementById('urgencySelect').value = '一般';
+            selectedDoctorId = null;
+            pendingDispatchOrderId = null;
+            document.querySelectorAll('.doctor-option').forEach(o => o.classList.remove('selected'));
+        }
+
+        async function createOrder() {
+            const elderlyId = document.getElementById('elderSelect').value;
+            const description = document.getElementById('descriptionInput').value;
+            const urgency = document.getElementById('urgencySelect').value;
+            
+            if (!elderlyId) {
+                alert('请选择老人');
+                return;
+            }
+            if (!description) {
+                alert('请输入病情描述');
+                return;
+            }
+            if (!selectedDoctorId) {
+                alert('请选择医生');
+                return;
+            }
+
+            try {
+                let res;
+                if (pendingDispatchOrderId) {
+                    res = await api.orders.updateStatus(pendingDispatchOrderId, '已接单');
+                } else {
+                    res = await api.orders.create({
+                        elderly_id: parseInt(elderlyId),
+                        doctor_id: selectedDoctorId,
+                        description: description,
+                        urgency: urgency
+                    });
+                }
+                
+                if (res.success) {
+                    alert(pendingDispatchOrderId ? '工单派医成功，状态已更新为已接单' : ('工单创建成功！工单号：' + res.data.order_no));
+                    hideCreateModal();
+                    loadOrders();
+                }
+            } catch (error) {
+                alert('创建工单失败：' + error.message);
+            }
+        }
+
+        async function updateOrderStatus(id, status) {
+            try {
+                const res = await api.orders.updateStatus(id, status);
+                if (res.success) {
+                    alert('状态更新成功');
+                    loadOrders();
+                }
+            } catch (error) {
+                alert('更新失败：' + error.message);
+            }
+        }
+
+        const createBtn = document.querySelector('.modal-footer .btn-primary');
+        if (createBtn) createBtn.addEventListener('click', createOrder);
+        bindFilterEvents();
+        if (hasPermission('orders')) initPage();
+    </script>
+</body>
+</html>

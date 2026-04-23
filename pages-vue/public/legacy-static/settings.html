@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统设置 - 老年人监护系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background-color: #f0f2f5;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 20px 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header h1 {
+            font-size: 24px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            padding: 20px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .card-header h4 {
+            color: #333;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card-body {
+            padding: 25px;
+        }
+        .form-group {
+            margin-bottom: 25px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group input[type="email"],
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #1e3c72;
+        }
+        .form-row {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        .form-row input {
+            width: 120px;
+        }
+        .threshold-group {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .threshold-group h5 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 15px;
+        }
+        .checkbox-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        .checkbox-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: #1e3c72;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #2a5298;
+        }
+        .btn-success {
+            background: #4CAF50;
+            color: white;
+        }
+        .btn-success:hover {
+            background: #45a049;
+        }
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .info-text {
+            color: #666;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 26px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #4CAF50;
+        }
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+        .setting-info h5 {
+            color: #333;
+            font-size: 15px;
+            margin-bottom: 5px;
+        }
+        .setting-info p {
+            color: #666;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-cog"></i> 系统设置</h1>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h4><i class="fas fa-sliders-h"></i> 健康警报阈值设置</h4>
+            </div>
+            <div class="card-body">
+                <div class="threshold-group">
+                    <h5><i class="fas fa-heartbeat"></i> 心率警报阈值</h5>
+                    <div class="form-row">
+                        <label>下限：</label>
+                        <input id="heartRateMin" type="number" value="60">
+                        <label>bpm</label>
+                        <span style="margin: 0 20px;">—</span>
+                        <label>上限：</label>
+                        <input id="heartRateMax" type="number" value="100">
+                        <label>bpm</label>
+                    </div>
+                    <p class="info-text">正常心率范围：60-100 bpm，超出范围将触发警报</p>
+                </div>
+
+                <div class="threshold-group">
+                    <h5><i class="fas fa-tint"></i> 血压警报阈值（收缩压）</h5>
+                    <div class="form-row">
+                        <label>下限：</label>
+                        <input id="bpMin" type="number" value="90">
+                        <label>mmHg</label>
+                        <span style="margin: 0 20px;">—</span>
+                        <label>上限：</label>
+                        <input id="bpMax" type="number" value="140">
+                        <label>mmHg</label>
+                    </div>
+                    <p class="info-text">正常血压范围：90-140 mmHg，超出范围将触发警报</p>
+                </div>
+
+                <div class="threshold-group">
+                    <h5><i class="fas fa-lungs"></i> 血氧警报阈值</h5>
+                    <div class="form-row">
+                        <label>最低值：</label>
+                        <input id="spo2Min" type="number" value="95">
+                        <label>%</label>
+                    </div>
+                    <p class="info-text">血氧低于95%将触发警报</p>
+                </div>
+
+                <div class="threshold-group">
+                    <h5><i class="fas fa-thermometer-half"></i> 体温警报阈值</h5>
+                    <div class="form-row">
+                        <label>下限：</label>
+                        <input id="tempMin" type="number" value="36.0" step="0.1">
+                        <label>℃</label>
+                        <span style="margin: 0 20px;">—</span>
+                        <label>上限：</label>
+                        <input id="tempMax" type="number" value="37.5" step="0.1">
+                        <label>℃</label>
+                    </div>
+                    <p class="info-text">正常体温范围：36.0-37.5℃</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h4><i class="fas fa-bell"></i> 通知设置</h4>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label>警报通知方式</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-item">
+                            <input id="notifySystem" type="checkbox" checked>
+                            <span>系统通知</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input id="notifySms" type="checkbox" checked>
+                            <span>短信通知</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input id="notifyEmail" type="checkbox">
+                            <span>邮件通知</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input id="notifyApp" type="checkbox" checked>
+                            <span>APP推送</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>全局紧急通知名单（电话）</label>
+                    <input id="notifyContacts" type="text" placeholder="输入手机号，多个号码用英文逗号分隔，例如 13800000001,13900000002" value="13800000001">
+                    <p class="info-text">用于高优先级事件的全局通知，不等同于单个老人档案里的紧急联系人。</p>
+                </div>
+
+                <div class="form-group">
+                    <label>邮件接收地址</label>
+                    <input id="notifyEmailAddress" type="email" placeholder="输入邮箱地址" value="admin@community.com">
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h4><i class="fas fa-toggle-on"></i> 功能开关</h4>
+            </div>
+            <div class="card-body">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h5>自动警报</h5>
+                        <p>健康数据异常时自动触发警报流程</p>
+                    </div>
+                    <label class="switch">
+                        <input id="featureAutoAlert" type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h5>智能派单建议</h5>
+                        <p>警报触发后自动给出医生派单建议</p>
+                    </div>
+                    <label class="switch">
+                        <input id="featureDispatchSuggestion" type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h5>服药提醒</h5>
+                        <p>定时提醒老年人服药</p>
+                    </div>
+                    <label class="switch">
+                        <input id="featureMedicationReminder" type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h5>数据同步</h5>
+                        <p>自动同步健康数据到云端</p>
+                    </div>
+                    <label class="switch">
+                        <input id="featureDataSync" type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h4><i class="fas fa-user-shield"></i> 账户设置</h4>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label>管理员姓名</label>
+                    <input id="adminName" type="text" value="管理员">
+                </div>
+                <div class="form-group">
+                    <label>登录账号</label>
+                    <input id="adminAccount" type="text" value="admin" disabled style="background: #f5f5f5;">
+                </div>
+                <div class="form-group">
+                    <label>所属社区</label>
+                    <input id="adminCommunity" type="text" value="阳光社区">
+                </div>
+                <div class="form-group">
+                    <label>联系电话</label>
+                    <input id="adminPhone" type="text" value="010-****1234">
+                </div>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn btn-primary" data-require-role="admin" onclick="saveSettings()"><i class="fas fa-save"></i> 保存设置</button>
+            <button class="btn btn-success" data-require-role="admin" onclick="restoreDefaults()"><i class="fas fa-redo"></i> 恢复默认</button>
+            <span id="settingsRealtimeStatus" style="align-self:center;color:#4CAF50;font-size:13px;"></span>
+        </div>
+    </div>
+    <script src="js/api.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        const SETTINGS_KEY = 'systemSettingsSnapshotV2';
+        const AUTO_SAVE_DELAY_MS = 500;
+        if (!requirePagePermission('settings')) {
+            document.body.innerHTML = '<div style="text-align: center; padding: 100px; font-size: 18px; color: #666;">无访问权限，正在返回首页...</div>';
+        }
+
+        const DEFAULT_SETTINGS = {
+            thresholds: { heartRateMin: 60, heartRateMax: 100, bpMin: 90, bpMax: 140, spo2Min: 95, tempMin: 36.0, tempMax: 37.5 },
+            notifications: { system: true, sms: true, email: false, app: true, contacts: '13800000001', emailAddress: 'admin@community.com' },
+            features: { autoAlert: true, dispatchSuggestion: true, medicationReminder: true, dataSync: true },
+            account: { adminName: '管理员', adminAccount: 'admin', adminCommunity: '阳光社区', adminPhone: '010-****1234' }
+        };
+
+        let autoSaveTimer = null;
+
+        function setRealtimeStatus(text, color = '#4CAF50') {
+            const el = document.getElementById('settingsRealtimeStatus');
+            if (!el) return;
+            el.textContent = text;
+            el.style.color = color;
+        }
+
+        function readSettingsFromForm() {
+            return {
+                thresholds: {
+                    heartRateMin: Number(document.getElementById('heartRateMin').value || 0),
+                    heartRateMax: Number(document.getElementById('heartRateMax').value || 0),
+                    bpMin: Number(document.getElementById('bpMin').value || 0),
+                    bpMax: Number(document.getElementById('bpMax').value || 0),
+                    spo2Min: Number(document.getElementById('spo2Min').value || 0),
+                    tempMin: Number(document.getElementById('tempMin').value || 0),
+                    tempMax: Number(document.getElementById('tempMax').value || 0)
+                },
+                notifications: {
+                    system: document.getElementById('notifySystem').checked,
+                    sms: document.getElementById('notifySms').checked,
+                    email: document.getElementById('notifyEmail').checked,
+                    app: document.getElementById('notifyApp').checked,
+                    contacts: document.getElementById('notifyContacts').value.trim(),
+                    emailAddress: document.getElementById('notifyEmailAddress').value.trim()
+                },
+                features: {
+                    autoAlert: document.getElementById('featureAutoAlert').checked,
+                    dispatchSuggestion: document.getElementById('featureDispatchSuggestion').checked,
+                    medicationReminder: document.getElementById('featureMedicationReminder').checked,
+                    dataSync: document.getElementById('featureDataSync').checked
+                },
+                account: {
+                    adminName: document.getElementById('adminName').value.trim(),
+                    adminAccount: document.getElementById('adminAccount').value.trim(),
+                    adminCommunity: document.getElementById('adminCommunity').value.trim(),
+                    adminPhone: document.getElementById('adminPhone').value.trim()
+                }
+            };
+        }
+
+        function normalizeSettings(settings) {
+            const s = settings || {};
+            return {
+                thresholds: { ...DEFAULT_SETTINGS.thresholds, ...(s.thresholds || {}) },
+                notifications: { ...DEFAULT_SETTINGS.notifications, ...(s.notifications || {}) },
+                features: { ...DEFAULT_SETTINGS.features, ...(s.features || {}) },
+                account: { ...DEFAULT_SETTINGS.account, ...(s.account || {}) }
+            };
+        }
+
+        function applySettingsToForm(settings) {
+            const s = normalizeSettings(settings || DEFAULT_SETTINGS);
+            document.getElementById('heartRateMin').value = s.thresholds.heartRateMin;
+            document.getElementById('heartRateMax').value = s.thresholds.heartRateMax;
+            document.getElementById('bpMin').value = s.thresholds.bpMin;
+            document.getElementById('bpMax').value = s.thresholds.bpMax;
+            document.getElementById('spo2Min').value = s.thresholds.spo2Min;
+            document.getElementById('tempMin').value = s.thresholds.tempMin;
+            document.getElementById('tempMax').value = s.thresholds.tempMax;
+
+            document.getElementById('notifySystem').checked = Boolean(s.notifications.system);
+            document.getElementById('notifySms').checked = Boolean(s.notifications.sms);
+            document.getElementById('notifyEmail').checked = Boolean(s.notifications.email);
+            document.getElementById('notifyApp').checked = Boolean(s.notifications.app);
+            document.getElementById('notifyContacts').value = s.notifications.contacts || '';
+            document.getElementById('notifyEmailAddress').value = s.notifications.emailAddress || '';
+
+            document.getElementById('featureAutoAlert').checked = Boolean(s.features.autoAlert);
+            document.getElementById('featureDispatchSuggestion').checked = Boolean(s.features.dispatchSuggestion);
+            document.getElementById('featureMedicationReminder').checked = Boolean(s.features.medicationReminder);
+            document.getElementById('featureDataSync').checked = Boolean(s.features.dataSync);
+
+            document.getElementById('adminName').value = s.account.adminName || '';
+            document.getElementById('adminAccount').value = s.account.adminAccount || '';
+            document.getElementById('adminCommunity').value = s.account.adminCommunity || '';
+            document.getElementById('adminPhone').value = s.account.adminPhone || '';
+        }
+
+        function validateSettings(settings) {
+            const t = settings.thresholds;
+            if (t.heartRateMin < 30 || t.heartRateMax > 220 || t.heartRateMin >= t.heartRateMax) {
+                return "心率阈值不合法，请确保 30-220 且下限小于上限";
+            }
+            if (t.bpMin < 60 || t.bpMax > 240 || t.bpMin >= t.bpMax) {
+                return "血压阈值不合法，请确保 60-240 且下限小于上限";
+            }
+            if (t.spo2Min < 70 || t.spo2Min > 100) {
+                return "血氧最低值应在 70-100 之间";
+            }
+            if (t.tempMin < 34 || t.tempMax > 42 || t.tempMin >= t.tempMax) {
+                return "体温阈值不合法，请确保 34-42 且下限小于上限";
+            }
+            const contacts = settings.notifications.contacts.trim();
+            if (contacts) {
+                const phones = contacts.split(",").map((x) => x.trim()).filter(Boolean);
+                const invalid = phones.find((p) => !/^1\d{10}$/.test(p));
+                if (invalid) return `紧急通知名单手机号格式错误：${invalid}`;
+            }
+            if (settings.notifications.email) {
+                const email = settings.notifications.emailAddress.trim();
+                if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    return "已开启邮件通知，请填写有效邮箱地址";
+                }
+            }
+            return "";
+        }
+
+        async function loadSettings() {
+            try {
+                const res = await api.settings.getCurrent();
+                if (res.success && res.data && res.data.settings) {
+                    const remoteSettings = normalizeSettings(res.data.settings);
+                    applySettingsToForm(remoteSettings);
+                    localStorage.setItem(SETTINGS_KEY, JSON.stringify(remoteSettings));
+                    return;
+                }
+            } catch (error) {
+                console.warn('从后端加载设置失败，回退本地缓存:', error.message);
+            }
+
+            const cached = localStorage.getItem(SETTINGS_KEY);
+            if (!cached) {
+                applySettingsToForm(DEFAULT_SETTINGS);
+                return;
+            }
+            try {
+                const settings = normalizeSettings(JSON.parse(cached));
+                applySettingsToForm(settings);
+            } catch (error) {
+                console.error('加载本地设置失败:', error);
+                applySettingsToForm(DEFAULT_SETTINGS);
+            }
+        }
+
+        async function persistSettings(showToast = false) {
+            const settings = normalizeSettings(readSettingsFromForm());
+            const error = validateSettings(settings);
+            if (error) {
+                setRealtimeStatus(`校验失败：${error}`, '#ff4757');
+                if (showToast) alert(error);
+                return false;
+            }
+            try {
+                const res = await api.settings.updateCurrent(settings);
+                if (!res.success) throw new Error(res.message || '保存失败');
+                localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+                localStorage.setItem('systemSettingsLastUpdatedAt', new Date().toISOString());
+                setRealtimeStatus(`已实时生效 · ${new Date().toLocaleTimeString()}`);
+                if (showToast) alert('设置已保存并实时生效');
+                return true;
+            } catch (saveError) {
+                setRealtimeStatus(`保存失败：${saveError.message}`, '#ff4757');
+                if (showToast) alert(`保存失败：${saveError.message}`);
+                return false;
+            }
+        }
+
+        async function saveSettings() {
+            await persistSettings(true);
+        }
+
+        function scheduleAutoSave() {
+            setRealtimeStatus('正在保存...', '#ff9800');
+            if (autoSaveTimer) clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(async () => {
+                await persistSettings(false);
+            }, AUTO_SAVE_DELAY_MS);
+        }
+
+        async function restoreDefaults() {
+            if (!confirm('确定恢复默认设置吗？')) return;
+            localStorage.removeItem(SETTINGS_KEY);
+            applySettingsToForm(DEFAULT_SETTINGS);
+            await persistSettings(false);
+        }
+
+        async function initSettingsPage() {
+            await loadSettings();
+            setRealtimeStatus('已加载当前设置');
+        }
+
+        initSettingsPage();
+
+        document.querySelectorAll('input, select, textarea').forEach((el) => {
+            if (el.id === 'adminAccount') return;
+            const eventName = el.type === 'checkbox' ? 'change' : 'input';
+            el.addEventListener(eventName, scheduleAutoSave);
+        });
+
+        window.addEventListener('storage', (event) => {
+            if (event.key === SETTINGS_KEY && event.newValue) {
+                try {
+                    applySettingsToForm(JSON.parse(event.newValue));
+                    setRealtimeStatus('已同步最新设置');
+                } catch (error) {
+                    console.error('同步设置失败:', error);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

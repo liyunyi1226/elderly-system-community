@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>权限测试</title>
+</head>
+<body>
+    <h1>权限测试页面</h1>
+    <div id="result"></div>
+
+    <script>
+        // 模拟rolePermissions
+        const rolePermissions = {
+            admin: {
+                name: "管理员",
+                permissions: [
+                    "dashboard",
+                    "elderly-list",
+                    "elderly-detail",
+                    "orders",
+                    "alerts",
+                    "visit-plan",
+                    "devices",
+                    "emergency-resources",
+                    "doctors",
+                    "reports",
+                    "ai-risk-warning",
+                    "ai-diagnosis",
+                    "settings"
+                ]
+            },
+            doctor: {
+                name: "医生",
+                permissions: [
+                    "dashboard",
+                    "elderly-list",
+                    "elderly-detail",
+                    "orders",
+                    "alerts",
+                    "reports",
+                    "ai-risk-warning",
+                    "ai-diagnosis"
+                ]
+            },
+            nurse: {
+                name: "护理员",
+                permissions: [
+                    "dashboard",
+                    "elderly-list",
+                    "elderly-detail",
+                    "visit-plan",
+                    "devices",
+                    "alerts",
+                    "ai-risk-warning",
+                    "ai-diagnosis"
+                ]
+            },
+            service: {
+                name: "客服",
+                permissions: ["dashboard", "elderly-list", "elderly-detail", "alerts", "reports", "ai-risk-warning", "ai-diagnosis"]
+            }
+        };
+
+        const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
+        const role = rolePermissions[currentUser.role] || rolePermissions.admin;
+        const permissions = role.permissions || [];
+
+        console.log('当前用户:', currentUser);
+        console.log('用户角色:', currentUser.role);
+        console.log('角色配置:', role);
+        console.log('权限列表:', permissions);
+        console.log('是否有AI风险预警权限:', permissions.includes('ai-risk-warning'));
+        console.log('是否有AI辅助诊断权限:', permissions.includes('ai-diagnosis'));
+
+        document.getElementById('result').innerHTML = `
+            <h2>当前用户信息</h2>
+            <p>用户名: ${currentUser.username || '未知'}</p>
+            <p>真实姓名: ${currentUser.realName || '未知'}</p>
+            <p>角色: ${currentUser.role || '未知'}</p>
+            <p>角色名称: ${role.name || '未知'}</p>
+            
+            <h2>权限列表</h2>
+            <ul>
+                ${permissions.map(p => `<li>${p}</li>`).join('')}
+            </ul>
+            
+            <h2>AI权限检查</h2>
+            <p>AI风险预警: ${permissions.includes('ai-risk-warning') ? '✓ 有权限' : '✗ 无权限'}</p>
+            <p>AI辅助诊断: ${permissions.includes('ai-diagnosis') ? '✓ 有权限' : '✗ 无权限'}</p>
+        `;
+    </script>
+</body>
+</html>

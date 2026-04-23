@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>警报中心 - 老年人监护系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background-color: #f0f2f5;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 20px 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+        .ai-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            padding: 20px 30px;
+            margin-bottom: 20px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .ai-banner h3 {
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .ai-banner p {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+        .ai-stats {
+            display: flex;
+            gap: 30px;
+        }
+        .ai-stat {
+            text-align: center;
+        }
+        .ai-stat .number {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .ai-stat .label {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .stat-box {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .stat-box h4 {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .stat-box .number {
+            font-size: 36px;
+            font-weight: 700;
+            color: #333;
+        }
+        .stat-box.critical .number { color: #ff4757; }
+        .stat-box.warning .number { color: #ffa502; }
+        .stat-box.info .number { color: #3498db; }
+        .filter-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .btn-warning {
+            background: #ffa502;
+            color: white;
+        }
+        .btn-danger {
+            background: #ff4757;
+            color: white;
+        }
+        .btn-primary {
+            background: #1e3c72;
+            color: white;
+        }
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        .alert-card {
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            overflow: hidden;
+            transition: transform 0.3s;
+        }
+        .alert-card:hover {
+            transform: translateX(5px);
+        }
+        .alert-header {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-left: 5px solid;
+        }
+        .alert-card.critical .alert-header {
+            background: #fff5f5;
+            border-left-color: #ff4757;
+        }
+        .alert-card.warning .alert-header {
+            background: #fffaf0;
+            border-left-color: #ffa502;
+        }
+        .alert-card.info .alert-header {
+            background: #f0f8ff;
+            border-left-color: #3498db;
+        }
+        .alert-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        .alert-card.critical .alert-icon {
+            background: #ff4757;
+            color: white;
+        }
+        .alert-card.warning .alert-icon {
+            background: #ffa502;
+            color: white;
+        }
+        .alert-card.info .alert-icon {
+            background: #3498db;
+            color: white;
+        }
+        .alert-content {
+            flex: 1;
+        }
+        .alert-content h3 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+        .alert-content p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        .alert-meta {
+            display: flex;
+            gap: 20px;
+            font-size: 12px;
+            color: #999;
+        }
+        .ai-response {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 15px 20px;
+            margin: 0 20px 15px;
+            border-radius: 8px;
+        }
+        .ai-response h5 {
+            color: #667eea;
+            font-size: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .ai-response-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .response-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: #555;
+        }
+        .response-item i {
+            color: #667eea;
+        }
+        .response-item.completed i {
+            color: #4CAF50;
+        }
+        .alert-actions {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .btn-sm {
+            padding: 8px 20px;
+            font-size: 13px;
+        }
+        .level-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 14px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .level-1 {
+            background: #ff4757;
+            color: white;
+        }
+        .level-2 {
+            background: #ffa502;
+            color: white;
+        }
+        .level-3 {
+            background: #3498db;
+            color: white;
+        }
+        .time-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .time-stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .time-stat-card h4 {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .time-stat-card h4 i {
+            color: #667eea;
+        }
+        .time-stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .time-stat-value.good {
+            color: #27ae60;
+        }
+        .time-stat-value.warning {
+            color: #ffa502;
+        }
+        .time-stat-value.danger {
+            color: #ff4757;
+        }
+        .time-stat-trend {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+        }
+        .time-stat-trend.up {
+            color: #27ae60;
+        }
+        .time-stat-trend.down {
+            color: #ff4757;
+        }
+        .doctor-efficiency {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .doctor-efficiency h4 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .doctor-efficiency h4 i {
+            color: #667eea;
+        }
+        .efficiency-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .efficiency-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .efficiency-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #667eea;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+        .efficiency-info {
+            flex: 1;
+        }
+        .efficiency-info h5 {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .efficiency-bar {
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .efficiency-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+        .efficiency-bar-fill.excellent {
+            background: linear-gradient(90deg, #27ae60, #2ecc71);
+        }
+        .efficiency-bar-fill.good {
+            background: linear-gradient(90deg, #3498db, #5dade2);
+        }
+        .efficiency-bar-fill.warning {
+            background: linear-gradient(90deg, #f39c12, #f1c40f);
+        }
+        .efficiency-stats {
+            display: flex;
+            gap: 15px;
+            font-size: 12px;
+            color: #666;
+        }
+        .efficiency-stats span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-bell"></i> 警报中心</h1>
+        <p>AI智能分级响应 · 从被动报警到主动感知</p>
+    </div>
+
+    <div class="container">
+        <div class="ai-banner">
+            <div>
+                <h3><i class="fas fa-robot"></i> AI智能响应系统</h3>
+                <p>自动识别警报级别，智能触发响应流程，零漏报</p>
+            </div>
+            <div class="ai-stats">
+                <div class="ai-stat">
+                    <div class="number">91%</div>
+                    <div class="label">识别准确率</div>
+                </div>
+                <div class="ai-stat">
+                    <div class="number">1.2s</div>
+                    <div class="label">响应延迟</div>
+                </div>
+                <div class="ai-stat">
+                    <div class="number">0</div>
+                    <div class="label">漏报次数</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-box critical">
+                <h4>紧急警报</h4>
+                <div class="number">3</div>
+            </div>
+            <div class="stat-box warning">
+                <h4>警告提醒</h4>
+                <div class="number">8</div>
+            </div>
+            <div class="stat-box info">
+                <h4>普通通知</h4>
+                <div class="number">15</div>
+            </div>
+            <div class="stat-box">
+                <h4>今日处理</h4>
+                <div class="number">12</div>
+            </div>
+        </div>
+
+        <div class="time-stats">
+            <div class="time-stat-card">
+                <h4><i class="fas fa-stopwatch"></i> 平均响应时间</h4>
+                <div class="time-stat-value good">3.2<span style="font-size: 16px;">分钟</span></div>
+                <div class="time-stat-trend up">
+                    <i class="fas fa-arrow-down"></i>
+                    <span>较昨日提升 15%</span>
+                </div>
+            </div>
+            <div class="time-stat-card">
+                <h4><i class="fas fa-clock"></i> 平均处置时间</h4>
+                <div class="time-stat-value good">12.5<span style="font-size: 16px;">分钟</span></div>
+                <div class="time-stat-trend up">
+                    <i class="fas fa-arrow-down"></i>
+                    <span>较昨日提升 8%</span>
+                </div>
+            </div>
+            <div class="time-stat-card">
+                <h4><i class="fas fa-exclamation-triangle"></i> 超时未处理</h4>
+                <div class="time-stat-value danger">2<span style="font-size: 16px;">件</span></div>
+                <div class="time-stat-trend down">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>需要立即处理</span>
+                </div>
+            </div>
+            <div class="time-stat-card">
+                <h4><i class="fas fa-check-circle"></i> 今日完成率</h4>
+                <div class="time-stat-value good">92<span style="font-size: 16px;">%</span></div>
+                <div class="time-stat-trend up">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>较昨日提升 5%</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="doctor-efficiency">
+            <h4><i class="fas fa-user-md"></i> 医生响应效率统计</h4>
+            <div class="efficiency-list">
+                <div class="efficiency-item">
+                    <div class="efficiency-avatar">王</div>
+                    <div class="efficiency-info">
+                        <h5>王强军 · 全科</h5>
+                        <div class="efficiency-bar">
+                            <div class="efficiency-bar-fill excellent" style="width: 95%;"></div>
+                        </div>
+                    </div>
+                    <div class="efficiency-stats">
+                        <span><i class="fas fa-stopwatch"></i> 平均响应 2.1分钟</span>
+                        <span><i class="fas fa-check"></i> 处理 8 件</span>
+                        <span style="color: #27ae60;"><i class="fas fa-star"></i> 优秀</span>
+                    </div>
+                </div>
+                <div class="efficiency-item">
+                    <div class="efficiency-avatar" style="background: #3498db;">李</div>
+                    <div class="efficiency-info">
+                        <h5>李芳华 · 心内科</h5>
+                        <div class="efficiency-bar">
+                            <div class="efficiency-bar-fill good" style="width: 85%;"></div>
+                        </div>
+                    </div>
+                    <div class="efficiency-stats">
+                        <span><i class="fas fa-stopwatch"></i> 平均响应 3.5分钟</span>
+                        <span><i class="fas fa-check"></i> 处理 5 件</span>
+                        <span style="color: #3498db;"><i class="fas fa-thumbs-up"></i> 良好</span>
+                    </div>
+                </div>
+                <div class="efficiency-item">
+                    <div class="efficiency-avatar" style="background: #f39c12;">张</div>
+                    <div class="efficiency-info">
+                        <h5>张伟明 · 急诊科</h5>
+                        <div class="efficiency-bar">
+                            <div class="efficiency-bar-fill warning" style="width: 70%;"></div>
+                        </div>
+                    </div>
+                    <div class="efficiency-stats">
+                        <span><i class="fas fa-stopwatch"></i> 平均响应 5.2分钟</span>
+                        <span><i class="fas fa-check"></i> 处理 3 件</span>
+                        <span style="color: #f39c12;"><i class="fas fa-exclamation-circle"></i> 需改进</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="filter-bar">
+            <button class="btn btn-warning">全部警报</button>
+            <button class="btn btn-danger">紧急警报</button>
+            <button class="btn btn-primary">警告提醒</button>
+            <button class="btn" style="background: #95a5a6; color: white;">普通通知</button>
+        </div>
+
+        <div class="alert-card critical">
+            <div class="alert-header">
+                <div class="alert-icon">
+                    <i class="fas fa-exclamation"></i>
+                </div>
+                <div class="alert-content">
+                    <h3>紧急：张志强心率异常 <span class="level-badge level-1">一级响应</span></h3>
+                    <p>心率飙升至 145 bpm，远超正常范围，位置：A栋3单元501</p>
+                    <div class="alert-meta">
+                        <span><i class="fas fa-clock"></i> 2分钟前</span>
+                        <span><i class="fas fa-user"></i> 张志强</span>
+                        <span><i class="fas fa-heartbeat"></i> 心率: 145 bpm</span>
+                    </div>
+                </div>
+            </div>
+            <div class="ai-response">
+                <h5><i class="fas fa-robot"></i> AI智能响应</h5>
+                <div class="ai-response-content">
+                    <div class="response-item completed">
+                        <i class="fas fa-check-circle"></i>
+                        <span>已自动通知家属</span>
+                    </div>
+                    <div class="response-item completed">
+                        <i class="fas fa-check-circle"></i>
+                        <span>已调度医生王强军</span>
+                    </div>
+                    <div class="response-item completed">
+                        <i class="fas fa-check-circle"></i>
+                        <span>已定位老人位置</span>
+                    </div>
+                    <div class="response-item">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>医生正在赶往途中...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="alert-actions">
+                <div style="color: #666; font-size: 13px;">
+                    <i class="fas fa-info-circle"></i> AI已自动启动一级紧急响应流程
+                </div>
+                <div>
+                    <button class="btn btn-primary btn-sm">查看详情</button>
+                    <button class="btn btn-danger btn-sm">确认处理</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert-card critical">
+            <div class="alert-header">
+                <div class="alert-icon">
+                    <i class="fas fa-exclamation"></i>
+                </div>
+                <div class="alert-content">
+                    <h3>紧急：周德海血压危急 <span class="level-badge level-1">一级响应</span></h3>
+                    <p>血压 175/100 mmHg，心率过缓 52 bpm，情况危急，位置：C栋1单元501</p>
+                    <div class="alert-meta">
+                        <span><i class="fas fa-clock"></i> 5分钟前</span>
+                        <span><i class="fas fa-user"></i> 周德海</span>
+                        <span><i class="fas fa-tint"></i> 血压: 175/100 mmHg</span>
+                    </div>
+                </div>
+            </div>
+            <div class="ai-response">
+                <h5><i class="fas fa-robot"></i> AI智能响应</h5>
+                <div class="ai-response-content">
+                    <div class="response-item completed">
+                        <i class="fas fa-check-circle"></i>
+                        <span>已自动通知家属</span>
+                    </div>
+                    <div class="response-item completed">
+                        <i class="fas fa-check-circle"></i>
+                        <span>已调度心内科李芳华</span>
+                    </div>
+                    <div class="response-item completed">
+                        <i class="fas fa-check-circle"></i>
+                        <span>医生已到达现场</span>
+                    </div>
+                    <div class="response-item completed">
+                        <i class="fas fa-check-circle"></i>
+                        <span>正在救治中</span>
+                    </div>
+                </div>
+            </div>
+            <div class="alert-actions">
+                <div style="color: #4CAF50; font-size: 13px;">
+                    <i class="fas fa-check-circle"></i> AI响应完成，医生已到达
+                </div>
+                <div>
+                    <button class="btn btn-primary btn-sm">查看详情</button>
+                    <button class="btn btn-danger btn-sm">确认处理</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert-card warning">
+            <div class="alert-header">
+                <div class="alert-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="alert-content">
+                    <h3>警告：李秀兰血压偏高 <span class="level-badge level-2">二级响应</span></h3>
+                    <p>血压 158/95 mmHg，建议关注并提醒服药，位置：B栋1单元302</p>
+                    <div class="alert-meta">
+                        <span><i class="fas fa-clock"></i> 15分钟前</span>
+                        <span><i class="fas fa-user"></i> 李秀兰</span>
+                        <span><i class="fas fa-tint"></i> 血压: 158/95 mmHg</span>
+                    </div>
+                </div>
+            </div>
+            <div class="ai-response">
+                <h5><i class="fas fa-robot"></i> AI智能响应</h5>
+                <div class="ai-response-content">
+                    <div class="response-item completed">
+                        <i class="fas fa-check-circle"></i>
+                        <span>已记录健康数据</span>
+                    </div>
+                    <div class="response-item completed">
+                        <i class="fas fa-check-circle"></i>
+                        <span>已发送服药提醒</span>
+                    </div>
+                    <div class="response-item completed">
+                        <i class="fas fa-check-circle"></i>
+                        <span>已通知家属关注</span>
+                    </div>
+                    <div class="response-item completed">
+                        <i class="fas fa-check-circle"></i>
+                        <span>已增加监测频率</span>
+                    </div>
+                </div>
+            </div>
+            <div class="alert-actions">
+                <div style="color: #666; font-size: 13px;">
+                    <i class="fas fa-info-circle"></i> AI已启动二级关注响应
+                </div>
+                <div>
+                    <button class="btn btn-primary btn-sm">查看详情</button>
+                    <button class="btn btn-warning btn-sm">处理</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert-card info">
+            <div class="alert-header">
+                <div class="alert-icon">
+                    <i class="fas fa-info"></i>
+                </div>
+                <div class="alert-content">
+                    <h3>提醒：王建国服药时间 <span class="level-badge level-3">三级响应</span></h3>
+                    <p>降压药服用时间已到，请提醒老人按时服药，位置：A栋2单元601</p>
+                    <div class="alert-meta">
+                        <span><i class="fas fa-clock"></i> 30分钟前</span>
+                        <span><i class="fas fa-user"></i> 王建国</span>
+                        <span><i class="fas fa-pills"></i> 降压药</span>
+                    </div>
+                </div>
+            </div>
+            <div class="ai-response">
+                <h5><i class="fas fa-robot"></i> AI智能响应</h5>
+                <div class="ai-response-content">
+                    <div class="response-item completed">
+                        <i class="fas fa-check-circle"></i>
+                        <span>已通过语音助手提醒</span>
+                    </div>
+                    <div class="response-item completed">
+                        <i class="fas fa-check-circle"></i>
+                        <span>老人已确认服药</span>
+                    </div>
+                </div>
+            </div>
+            <div class="alert-actions">
+                <div style="color: #4CAF50; font-size: 13px;">
+                    <i class="fas fa-check-circle"></i> 老人已按时服药
+                </div>
+                <div>
+                    <button class="btn btn-primary btn-sm">查看详情</button>
+                    <button class="btn btn-sm" style="background: #4CAF50; color: white;">已处理</button>
+                </div>
+            </div>
+        </div>
+        <div class="pagination" style="display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:16px;">
+            <button class="btn btn-sm" id="alertsPrevPageBtn" style="background:#f0f0f0;color:#333;">上一页</button>
+            <span id="alertsPaginationInfo" style="color:#666;font-size:13px;">第 1 / 1 页</span>
+            <button class="btn btn-sm" id="alertsNextPageBtn" style="background:#f0f0f0;color:#333;">下一页</button>
+        </div>
+    </div>
+    <script src="js/api.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        if (!requirePagePermission('alerts')) {
+            document.body.innerHTML = '<div style="text-align: center; padding: 100px; font-size: 18px; color: #666;">无访问权限，正在返回首页...</div>';
+        }
+
+        let alertsCache = [];
+        let alertsContainer = null;
+        let alertsCurrentPage = 1;
+        const ALERTS_PAGE_SIZE = 10;
+        let alertsTotal = 0;
+
+        function alertCardClass(level) {
+            if (level === '紧急') return 'critical';
+            if (level === '警告') return 'warning';
+            return 'info';
+        }
+
+        function renderAlerts() {
+            if (!alertsContainer) {
+                const firstCard = document.querySelector('.alert-card');
+                alertsContainer = firstCard ? firstCard.parentElement : null;
+            }
+            if (!alertsContainer) return;
+            if (!alertsCache.length) {
+                alertsContainer.innerHTML = '<div style="padding:24px; text-align:center; color:#666;">暂无警报数据</div>';
+                return;
+            }
+
+            alertsContainer.innerHTML = alertsCache.map((a) => `
+                <div class="alert-card ${alertCardClass(a.level)}" data-alert-id="${a.id}">
+                    <div class="alert-header">
+                        <div class="alert-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                        <div class="alert-content">
+                            <h3>${a.title || '警报通知'}</h3>
+                            <p>${a.description || '无描述'}</p>
+                            <div class="alert-meta">
+                                <span><i class="fas fa-clock"></i> ${a.created_at || '-'}</span>
+                                <span><i class="fas fa-user"></i> ${a.elderly_name || a.elderly_id || '-'}</span>
+                                <span><i class="fas fa-tag"></i> ${a.status || '待处理'}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="alert-actions">
+                        <div style="color: #666; font-size: 13px;">
+                            <i class="fas fa-info-circle"></i> 状态：${a.status || '待处理'}
+                        </div>
+                        <div>
+                            <button class="btn btn-primary btn-sm" data-action="detail" data-id="${a.id}">查看详情</button>
+                            <button class="btn btn-warning btn-sm" data-action="handle" data-id="${a.id}" ${a.status === '已处理' ? 'disabled style="opacity:.6;"' : ''}>${a.status === '已处理' ? '已处理' : '处理'}</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderAlertsPagination() {
+            const totalPages = Math.max(1, Math.ceil(alertsTotal / ALERTS_PAGE_SIZE));
+            const info = document.getElementById('alertsPaginationInfo');
+            const prev = document.getElementById('alertsPrevPageBtn');
+            const next = document.getElementById('alertsNextPageBtn');
+            if (info) info.textContent = `第 ${alertsCurrentPage} / ${totalPages} 页（共 ${alertsTotal} 条）`;
+            if (prev) prev.disabled = alertsCurrentPage <= 1;
+            if (next) next.disabled = alertsCurrentPage >= totalPages;
+        }
+
+        async function loadAlertsPage() {
+            try {
+                const res = await api.alerts.getList({ page: alertsCurrentPage, pageSize: ALERTS_PAGE_SIZE });
+                if (!res.success) return;
+                alertsCache = res.data.list || [];
+                alertsTotal = Number(res.data.total || 0);
+                renderAlerts();
+                renderAlertsPagination();
+            } catch (error) {
+                console.error('绑定警报按钮失败:', error);
+            }
+        }
+
+        document.addEventListener('click', async (event) => {
+            const action = event.target?.dataset?.action;
+            const id = Number(event.target?.dataset?.id);
+            if (!action || !id) return;
+            const current = alertsCache.find((a) => a.id === id);
+            if (!current) return;
+
+            if (action === 'detail') {
+                alert(`警报详情\n标题：${current.title}\n老人：${current.elderly_name || current.elderly_id}\n状态：${current.status}`);
+                return;
+            }
+
+            if (action === 'handle') {
+                try {
+                    const result = await api.alerts.handle(id, '页面按钮处理');
+                    if (result.success) {
+                        await loadAlertsPage();
+                        alert('警报已处理');
+                    }
+                } catch (e) {
+                    alert('处理失败：' + e.message);
+                }
+            }
+        });
+
+        document.getElementById('alertsPrevPageBtn')?.addEventListener('click', () => {
+            if (alertsCurrentPage <= 1) return;
+            alertsCurrentPage -= 1;
+            loadAlertsPage();
+        });
+        document.getElementById('alertsNextPageBtn')?.addEventListener('click', () => {
+            const totalPages = Math.max(1, Math.ceil(alertsTotal / ALERTS_PAGE_SIZE));
+            if (alertsCurrentPage >= totalPages) return;
+            alertsCurrentPage += 1;
+            loadAlertsPage();
+        });
+
+        if (hasPermission('alerts')) loadAlertsPage();
+    </script>
+</body>
+</html>

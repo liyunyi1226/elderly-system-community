@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>控制台 - 老年人监护系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background-color: #f0f2f5;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 20px 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header h1 { font-size: 24px; margin-bottom: 5px; }
+        .header p { font-size: 14px; opacity: 0.9; }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-danger { background: #f44336; color: white; }
+        .btn-warning { background: #ff9800; color: white; }
+        .btn-success { background: #4caf50; color: white; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .task-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .task-stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        .task-stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        .task-stat-card.active { border-color: #667eea; }
+        .task-stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+        }
+        .task-stat-card.alert .task-stat-icon { background: #ffebee; color: #f44336; }
+        .task-stat-card.order .task-stat-icon { background: #fff3e0; color: #ff9800; }
+        .task-stat-card.done .task-stat-icon { background: #e8f5e9; color: #4caf50; }
+        .task-stat-card.confirm .task-stat-icon { background: #e3f2fd; color: #2196f3; }
+        .task-stat-info h3 {
+            font-size: 32px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .task-stat-info p {
+            color: #666;
+            font-size: 14px;
+        }
+        .task-stat-card.alert h3 { color: #f44336; }
+        .task-stat-card.order h3 { color: #ff9800; }
+        .task-stat-card.done h3 { color: #4caf50; }
+        .task-stat-card.confirm h3 { color: #2196f3; }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .card-header {
+            padding: 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card-header h4 {
+            color: #333;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card-body { padding: 20px; }
+        .task-list { display: flex; flex-direction: column; gap: 15px; }
+        .task-item {
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 18px;
+            transition: all 0.3s;
+        }
+        .task-item:hover { box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .task-item.urgent {
+            border-left: 4px solid #f44336;
+            background: #fff5f5;
+        }
+        .task-item.normal {
+            border-left: 4px solid #ff9800;
+            background: #fffaf0;
+        }
+        .task-item.routine {
+            border-left: 4px solid #4caf50;
+            background: #f1f8e9;
+        }
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        .task-info h5 {
+            font-size: 15px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .task-info p {
+            color: #666;
+            font-size: 13px;
+        }
+        .task-meta {
+            text-align: right;
+        }
+        .task-meta .time {
+            font-size: 12px;
+            color: #999;
+        }
+        .task-meta .wait {
+            font-size: 14px;
+            color: #f44336;
+            font-weight: 500;
+        }
+        .task-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 12px;
+        }
+        .task-detail {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+        }
+        .task-detail h6 {
+            font-size: 11px;
+            color: #999;
+            margin-bottom: 3px;
+        }
+        .task-detail p {
+            font-size: 13px;
+            color: #333;
+        }
+        .task-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 12px;
+            border-top: 1px solid #f0f0f0;
+        }
+        .task-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .priority-tag {
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .priority-tag.urgent { background: #f44336; color: white; }
+        .priority-tag.normal { background: #ff9800; color: white; }
+        .priority-tag.routine { background: #4caf50; color: white; }
+        .doctor-status {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .doctor-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+        }
+        .doctor-info { flex: 1; }
+        .doctor-info h5 {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 3px;
+        }
+        .doctor-info p {
+            font-size: 12px;
+            color: #666;
+        }
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .status-dot.online { background: #4caf50; }
+        .status-dot.busy { background: #ff9800; }
+        .status-dot.offline { background: #ccc; }
+        .device-warning {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #fff3e0;
+            border-radius: 8px;
+            border-left: 3px solid #ff9800;
+            margin-bottom: 10px;
+        }
+        .device-warning i {
+            font-size: 20px;
+            color: #ff9800;
+        }
+        .device-warning h5 {
+            font-size: 13px;
+            color: #333;
+            margin-bottom: 3px;
+        }
+        .device-warning p {
+            font-size: 12px;
+            color: #666;
+        }
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .quick-stat {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .quick-stat h4 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .quick-stat p {
+            font-size: 12px;
+            color: #666;
+        }
+        .chart-container {
+            height: 250px;
+        }
+        @media (max-width: 1024px) {
+            .grid-2 { grid-template-columns: 1fr; }
+            .task-stats { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-tachometer-alt"></i> 社区监护控制台</h1>
+        <p>阳光社区 · 今日待处理任务 · 实时监控</p>
+    </div>
+
+    <div class="container">
+        <div class="task-stats">
+            <div class="task-stat-card alert active" data-filter="alert">
+                <div class="task-stat-icon"><i class="fas fa-bell"></i></div>
+                <div class="task-stat-info">
+                    <h3 id="statAlertCount">0</h3>
+                    <p>待处理警报</p>
+                </div>
+            </div>
+            <div class="task-stat-card order" data-filter="order">
+                <div class="task-stat-icon"><i class="fas fa-clipboard-list"></i></div>
+                <div class="task-stat-info">
+                    <h3 id="statOrderCount">0</h3>
+                    <p>今日派医工单</p>
+                </div>
+            </div>
+            <div class="task-stat-card done" data-filter="done">
+                <div class="task-stat-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="task-stat-info">
+                    <h3 id="statDoneCount">0</h3>
+                    <p>已完成处置</p>
+                </div>
+            </div>
+            <div class="task-stat-card confirm" data-filter="confirm">
+                <div class="task-stat-icon"><i class="fas fa-clock"></i></div>
+                <div class="task-stat-info">
+                    <h3 id="statConfirmCount">0</h3>
+                    <p>待确认处置</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-tasks"></i> 待处理工单</h4>
+                    <a href="orders.html" class="btn btn-primary btn-sm">查看全部</a>
+                </div>
+                <div class="card-body">
+                    <div class="task-list" id="pendingTaskList">
+                        <div class="task-item urgent">
+                            <div class="task-header">
+                                <div class="task-info">
+                                    <h5><i class="fas fa-user"></i> 张桂芳 · 78岁 <span class="priority-tag urgent">紧急</span></h5>
+                                    <p><i class="fas fa-map-marker-alt"></i> 阳光社区3号楼2单元501室</p>
+                                </div>
+                                <div class="task-meta">
+                                    <div class="time">10:30 创建</div>
+                                    <div class="wait">等待 45分钟</div>
+                                </div>
+                            </div>
+                            <div class="task-body">
+                                <div class="task-detail">
+                                    <h6>病情描述</h6>
+                                    <p>心率持续偏高(125bpm)，伴有胸闷气短</p>
+                                </div>
+                                <div class="task-detail">
+                                    <h6>触发来源</h6>
+                                    <p>智能手表自动报警 · AI风险预警</p>
+                                </div>
+                            </div>
+                            <div class="task-footer">
+                                <span style="font-size: 12px; color: #666;"><i class="fas fa-robot"></i> AI建议：立即派医，推荐王强军</span>
+                                <div class="task-actions">
+                                    <a href="orders.html" class="btn btn-danger btn-sm" data-require-role="admin,service"><i class="fas fa-user-md"></i> 立即派医</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="task-item normal">
+                            <div class="task-header">
+                                <div class="task-info">
+                                    <h5><i class="fas fa-user"></i> 李建国 · 82岁 <span class="priority-tag normal">一般</span></h5>
+                                    <p><i class="fas fa-map-marker-alt"></i> 阳光社区5号楼1单元302室</p>
+                                </div>
+                                <div class="task-meta">
+                                    <div class="time">11:15 创建</div>
+                                    <div class="wait">等待 20分钟</div>
+                                </div>
+                            </div>
+                            <div class="task-body">
+                                <div class="task-detail">
+                                    <h6>病情描述</h6>
+                                    <p>血糖异常波动，晨起血糖3.2mmol/L</p>
+                                </div>
+                                <div class="task-detail">
+                                    <h6>触发来源</h6>
+                                    <p>家属电话求助</p>
+                                </div>
+                            </div>
+                            <div class="task-footer">
+                                <span style="font-size: 12px; color: #666;"><i class="fas fa-robot"></i> AI建议：低血糖风险，建议尽快处理</span>
+                                <div class="task-actions">
+                                    <a href="orders.html" class="btn btn-warning btn-sm" data-require-role="admin,service"><i class="fas fa-user-md"></i> 派医</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="task-item routine">
+                            <div class="task-header">
+                                <div class="task-info">
+                                    <h5><i class="fas fa-user"></i> 陈大明 · 80岁 <span class="priority-tag routine">常规</span></h5>
+                                    <p><i class="fas fa-map-marker-alt"></i> 阳光社区6号楼2单元401室</p>
+                                </div>
+                                <div class="task-meta">
+                                    <div class="time">09:00 创建</div>
+                                    <div class="wait">等待 10分钟</div>
+                                </div>
+                            </div>
+                            <div class="task-body">
+                                <div class="task-detail">
+                                    <h6>任务类型</h6>
+                                    <p>定期巡访 · 检查身体状况</p>
+                                </div>
+                                <div class="task-detail">
+                                    <h6>触发来源</h6>
+                                    <p>巡访计划自动生成</p>
+                                </div>
+                            </div>
+                            <div class="task-footer">
+                                <span style="font-size: 12px; color: #666;">巡访周期：每周一次</span>
+                                <div class="task-actions">
+                                    <a href="visit-plan.html" class="btn btn-success btn-sm"><i class="fas fa-calendar-check"></i> 安排巡访</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="card" style="margin-bottom: 20px;">
+                    <div class="card-header">
+                        <h4><i class="fas fa-user-md"></i> 医生在线状态</h4>
+                        <a href="doctors.html" class="btn btn-primary btn-sm" data-require-role="admin">管理</a>
+                    </div>
+                    <div class="card-body" id="doctorStatusList">
+                        <div class="doctor-status">
+                            <div class="doctor-avatar"><i class="fas fa-user-md"></i></div>
+                            <div class="doctor-info">
+                                <h5>王强军 <span style="font-size: 11px; color: #4caf50;">● 在线</span></h5>
+                                <p>心血管内科 · 当前任务：1个</p>
+                            </div>
+                            <div class="status-dot online"></div>
+                        </div>
+                        <div class="doctor-status">
+                            <div class="doctor-avatar"><i class="fas fa-user-md"></i></div>
+                            <div class="doctor-info">
+                                <h5>李芳华 <span style="font-size: 11px; color: #4caf50;">● 在线</span></h5>
+                                <p>全科医学 · 当前任务：0个</p>
+                            </div>
+                            <div class="status-dot online"></div>
+                        </div>
+                        <div class="doctor-status">
+                            <div class="doctor-avatar"><i class="fas fa-user-md"></i></div>
+                            <div class="doctor-info">
+                                <h5>张伟明 <span style="font-size: 11px; color: #ff9800;">● 出诊中</span></h5>
+                                <p>内分泌科 · 当前任务：2个</p>
+                            </div>
+                            <div class="status-dot busy"></div>
+                        </div>
+                        <div class="doctor-status">
+                            <div class="doctor-avatar"><i class="fas fa-user-md"></i></div>
+                            <div class="doctor-info">
+                                <h5>陈静怡 <span style="font-size: 11px; color: #ccc;">● 离线</span></h5>
+                                <p>神经内科 · 最后在线：2小时前</p>
+                            </div>
+                            <div class="status-dot offline"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-microchip"></i> 设备异常提醒</h4>
+                        <a href="devices.html" class="btn btn-primary btn-sm" data-require-permission="devices">详情</a>
+                    </div>
+                    <div class="card-body" id="deviceWarningList">
+                        <div class="device-warning">
+                            <i class="fas fa-wifi-slash"></i>
+                            <div>
+                                <h5>张桂芳的手表离线</h5>
+                                <p>已离线72小时，请及时处理</p>
+                            </div>
+                        </div>
+                        <div class="device-warning">
+                            <i class="fas fa-battery-quarter"></i>
+                            <div>
+                                <h5>王秀英的SOS报警器低电量</h5>
+                                <p>当前电量20%，请提醒充电</p>
+                            </div>
+                        </div>
+                        <div class="device-warning" style="background: #fce4ec; border-left-color: #f44336;">
+                            <i class="fas fa-exclamation-circle" style="color: #f44336;"></i>
+                            <div>
+                                <h5>陈大明的手表故障</h5>
+                                <p>心率传感器异常，需报修</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid-2" style="grid-template-columns: 1fr 1fr;">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-chart-pie"></i> 今日处置统计</h4>
+                </div>
+                <div class="card-body">
+                    <div class="quick-stats">
+                        <div class="quick-stat">
+                            <h4 id="statResponseMins">-</h4>
+                            <p>平均响应时间</p>
+                        </div>
+                        <div class="quick-stat">
+                            <h4 id="statHandleMins">-</h4>
+                            <p>平均处置时间</p>
+                        </div>
+                        <div class="quick-stat">
+                            <h4 id="statTimelyRate">-</h4>
+                            <p>处置及时率</p>
+                        </div>
+                        <div class="quick-stat">
+                            <h4 id="statTimeoutCount">0</h4>
+                            <p>超时未处理</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-chart-line"></i> 本周趋势</h4>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        if (!requirePagePermission('dashboard')) {
+            document.body.innerHTML = '<div style="text-align: center; padding: 100px; font-size: 18px; color: #666;">无访问权限，正在返回首页...</div>';
+        }
+
+        let trendChart = null;
+        let dashboardOrders = [];
+        let currentCardFilter = "alert";
+
+        function getCurrentRole() {
+            return window.getCurrentUser?.().role || '';
+        }
+
+        function canDispatchFromDashboard() {
+            return ['admin', 'service'].includes(getCurrentRole());
+        }
+
+        function canAcceptFromDashboard() {
+            return getCurrentRole() === 'doctor';
+        }
+
+        function fmtAgo(datetimeText) {
+            if (!datetimeText) return "-";
+            const t = new Date(datetimeText.replace(" ", "T"));
+            if (Number.isNaN(t.getTime())) return datetimeText;
+            const diff = Math.max(0, Date.now() - t.getTime());
+            const mins = Math.floor(diff / 60000);
+            if (mins < 1) return "刚刚";
+            if (mins < 60) return `${mins}分钟前`;
+            const h = Math.floor(mins / 60);
+            if (h < 24) return `${h}小时前`;
+            return `${Math.floor(h / 24)}天前`;
+        }
+
+        function getFilteredOrders() {
+            if (currentCardFilter === "done") return dashboardOrders.filter((o) => o.status === "已完成");
+            if (currentCardFilter === "confirm") return dashboardOrders.filter((o) => o.status === "处置中" || o.status === "已到达");
+            if (currentCardFilter === "order") return dashboardOrders.filter((o) => ["待接单", "已接单", "出发中", "已到达", "处置中"].includes(o.status));
+            return dashboardOrders.filter((o) => o.status === "待接单" || o.urgency === "紧急");
+        }
+
+        function renderPendingOrders() {
+            const orders = getFilteredOrders();
+            const wrap = document.getElementById("pendingTaskList");
+            if (!wrap) return;
+            if (!orders.length) {
+                wrap.innerHTML = '<div style="color:#666;text-align:center;padding:24px;">暂无待处理工单</div>';
+                return;
+            }
+            wrap.innerHTML = orders.map((o) => {
+                const urgencyClass = o.urgency === "紧急" ? "urgent" : (o.urgency === "一般" ? "normal" : "routine");
+                const isPending = o.status === "待接单";
+                const actionLabel = isPending
+                    ? (canDispatchFromDashboard() ? "立即派医" : (canAcceptFromDashboard() ? "去接单" : "查看工单"))
+                    : "查看进度";
+                const actionIcon = isPending && canAcceptFromDashboard() && !canDispatchFromDashboard() ? "fa-handshake" : "fa-user-md";
+                return `
+                    <div class="task-item ${urgencyClass}">
+                        <div class="task-header">
+                            <div class="task-info">
+                                <h5><i class="fas fa-user"></i> ${o.elderly_name || "未知"} <span class="priority-tag ${urgencyClass}">${o.urgency || "一般"}</span></h5>
+                                <p><i class="fas fa-map-marker-alt"></i> ${o.address || "地址未知"}</p>
+                            </div>
+                            <div class="task-meta">
+                                <div class="time">${o.created_at || "-"}</div>
+                                <div class="wait">等待 ${fmtAgo(o.created_at)}</div>
+                            </div>
+                        </div>
+                        <div class="task-body">
+                            <div class="task-detail">
+                                <h6>病情描述</h6>
+                                <p>${o.description || "无"}</p>
+                            </div>
+                            <div class="task-detail">
+                                <h6>工单状态</h6>
+                                <p>${o.status || "-"}</p>
+                            </div>
+                        </div>
+                        <div class="task-footer">
+                            <span style="font-size: 12px; color: #666;">工单号：${o.order_no || "-"}</span>
+                            <div class="task-actions">
+                                <a href="orders.html" class="btn ${o.status === "待接单" ? "btn-danger" : "btn-warning"} btn-sm"><i class="fas ${actionIcon}"></i> ${actionLabel}</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join("");
+            if (window.applyAccessControl) window.applyAccessControl();
+        }
+
+        function updateCardActiveState() {
+            document.querySelectorAll(".task-stat-card").forEach((card) => {
+                card.classList.toggle("active", card.dataset.filter === currentCardFilter);
+            });
+        }
+
+        function renderDoctors(doctors) {
+            const wrap = document.getElementById("doctorStatusList");
+            if (!wrap) return;
+            if (!doctors.length) {
+                wrap.innerHTML = '<div style="color:#666;text-align:center;padding:12px;">暂无医生数据</div>';
+                return;
+            }
+            wrap.innerHTML = doctors.slice(0, 6).map((d) => {
+                const dot = d.status === "在线" ? "online" : (d.status === "忙碌" ? "busy" : "offline");
+                return `
+                    <div class="doctor-status">
+                        <div class="doctor-avatar"><i class="fas fa-user-md"></i></div>
+                        <div class="doctor-info">
+                            <h5>${d.name || "医生"} <span style="font-size: 11px; color: ${dot === "online" ? "#4caf50" : dot === "busy" ? "#ff9800" : "#ccc"};">● ${d.status || "离线"}</span></h5>
+                            <p>${d.specialization || "全科"} · 评分：${d.rating ?? "-"}</p>
+                        </div>
+                        <div class="status-dot ${dot}"></div>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        function renderDeviceWarnings(devices) {
+            const wrap = document.getElementById("deviceWarningList");
+            if (!wrap) return;
+            const warnings = devices.filter((d) => d.status === "离线" || Number(d.battery_level) < 20 || d.status === "故障").slice(0, 5);
+            if (!warnings.length) {
+                wrap.innerHTML = '<div style="color:#4caf50;">暂无设备异常</div>';
+                return;
+            }
+            wrap.innerHTML = warnings.map((d) => {
+                const lowBattery = Number(d.battery_level) < 20;
+                const fault = d.status === "故障";
+                const icon = fault ? "fa-exclamation-circle" : (lowBattery ? "fa-battery-quarter" : "fa-wifi-slash");
+                const title = `${d.elderly_name || "未绑定老人"} 的${d.device_type || "设备"}异常`;
+                const text = fault ? "设备故障，请安排报修" : (lowBattery ? `电量仅 ${d.battery_level}%` : `离线：${fmtAgo(d.last_online_at)}`);
+                return `<div class="device-warning"><i class="fas ${icon}"></i><div><h5>${title}</h5><p>${text}</p></div></div>`;
+            }).join("");
+        }
+
+        function renderTrend(trendData) {
+            const orderMap = new Map((trendData.orderTrend || []).map((x) => [x.date, x.count]));
+            const alertMap = new Map((trendData.alertTrend || []).map((x) => [x.date, x.count]));
+            const labels = [];
+            const orderSeries = [];
+            const alertSeries = [];
+            for (let i = 6; i >= 0; i -= 1) {
+                const dt = new Date(Date.now() - i * 86400000);
+                const key = dt.toISOString().slice(0, 10);
+                labels.push(key.slice(5));
+                orderSeries.push(orderMap.get(key) || 0);
+                alertSeries.push(alertMap.get(key) || 0);
+            }
+            if (trendChart) trendChart.destroy();
+            trendChart = new Chart(document.getElementById('trendChart'), {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        { label: '派医工单', data: orderSeries, borderColor: '#667eea', tension: 0.4, fill: false },
+                        { label: '警报数量', data: alertSeries, borderColor: '#4caf50', tension: 0.4, fill: false }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } }
+            });
+        }
+
+        async function loadDashboardRealtime() {
+            try {
+                const [overviewRes, trendRes, doctorsRes, devicesRes, ordersRes] = await Promise.all([
+                    api.dashboard.getOverview(),
+                    api.dashboard.getTrend(7),
+                    api.doctors.getList(),
+                    api.devices.getList(),
+                    api.orders.getList({ pageSize: 100 })
+                ]);
+                if (!overviewRes.success) return;
+                const ov = overviewRes.data || {};
+                const allOrders = (ordersRes.data?.list || []);
+                const done = allOrders.filter((x) => x.status === "已完成").length;
+                const confirm = allOrders.filter((x) => x.status === "处置中" || x.status === "已到达").length;
+                document.getElementById("statAlertCount").textContent = ov.alertCount || 0;
+                document.getElementById("statOrderCount").textContent = ov.orderCount || 0;
+                document.getElementById("statDoneCount").textContent = done;
+                document.getElementById("statConfirmCount").textContent = confirm;
+
+                dashboardOrders = allOrders;
+                renderPendingOrders();
+                renderDoctors(doctorsRes.data || []);
+                renderDeviceWarnings(devicesRes.data || []);
+
+                const avgWait = (ov.pendingOrders || []).reduce((acc, x) => {
+                    const t = new Date((x.created_at || "").replace(" ", "T")).getTime();
+                    return acc + (Number.isNaN(t) ? 0 : Math.max(0, Math.floor((Date.now() - t) / 60000)));
+                }, 0);
+                const avgWaitMins = (ov.pendingOrders || []).length ? Math.round(avgWait / (ov.pendingOrders || []).length) : 0;
+                document.getElementById("statResponseMins").textContent = `${avgWaitMins}分钟`;
+                document.getElementById("statHandleMins").textContent = `${Math.max(20, avgWaitMins + 15)}分钟`;
+                const timelyRate = (done + ov.orderCount) > 0 ? Math.round((done / (done + ov.orderCount)) * 100) : 100;
+                document.getElementById("statTimelyRate").textContent = `${Math.max(0, Math.min(100, timelyRate))}%`;
+                document.getElementById("statTimeoutCount").textContent = (ov.pendingOrders || []).filter((x) => {
+                    const t = new Date((x.created_at || "").replace(" ", "T")).getTime();
+                    return !Number.isNaN(t) && Date.now() - t > 60 * 60000;
+                }).length;
+
+                if (trendRes.success) renderTrend(trendRes.data || {});
+            } catch (error) {
+                console.error("加载控制台实时数据失败:", error);
+            }
+        }
+
+        document.querySelectorAll(".task-stat-card").forEach((card) => {
+            card.addEventListener("click", () => {
+                currentCardFilter = card.dataset.filter || "alert";
+                updateCardActiveState();
+                renderPendingOrders();
+            });
+        });
+
+        if (hasPermission('dashboard')) {
+            updateCardActiveState();
+            loadDashboardRealtime();
+            setInterval(loadDashboardRealtime, 15000);
+        }
+    </script>
+</body>
+</html>

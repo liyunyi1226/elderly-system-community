@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI辅助诊断 - 老年人监护系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background-color: #f0f2f5;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #00c6fb 0%, #005bea 100%);
+            color: white;
+            padding: 20px 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { font-size: 24px; margin-bottom: 5px; }
+        .header p { font-size: 14px; opacity: 0.9; }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-outline {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-success { background: #4caf50; color: white; }
+        .btn-warning { background: #ff9800; color: white; }
+        .btn-danger { background: #f44336; color: white; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 25px;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .card-header {
+            padding: 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card-header h4 {
+            color: #333;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card-body { padding: 20px; }
+        .patient-select {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        .patient-select select {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .patient-info-card {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .patient-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+        .patient-details h4 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        .patient-details p {
+            color: #666;
+            font-size: 13px;
+        }
+        .vital-signs {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .vital-meta {
+            margin-top: -8px;
+            margin-bottom: 16px;
+            color: #666;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .vital-item {
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .vital-item i {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+        .vital-item.heart i { color: #f44336; }
+        .vital-item.bp i { color: #ff9800; }
+        .vital-item.sugar i { color: #2196f3; }
+        .vital-item.temp i { color: #4caf50; }
+        .vital-item .value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+        .vital-item .label {
+            font-size: 11px;
+            color: #666;
+        }
+        .vital-item.warning .value { color: #f44336; }
+        .input-section {
+            margin-bottom: 20px;
+        }
+        .input-section h5 {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .input-section textarea {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            min-height: 100px;
+            resize: vertical;
+        }
+        .symptom-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .symptom-tag {
+            padding: 6px 12px;
+            background: #e3f2fd;
+            color: #1976d2;
+            border: none;
+            border-radius: 15px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .symptom-tag:hover { background: #1976d2; color: white; }
+        .symptom-tag.selected { background: #1976d2; color: white; }
+        .analyze-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #00c6fb 0%, #005bea 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .analyze-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(0,198,251,0.4); }
+        .result-section {
+            margin-top: 20px;
+        }
+        .diagnosis-result {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 12px;
+            padding: 20px;
+            color: white;
+            margin-bottom: 20px;
+        }
+        .diagnosis-result h4 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .diagnosis-item {
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 12px;
+        }
+        .diagnosis-item h5 {
+            font-size: 14px;
+            color: #00c6fb;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .diagnosis-item p {
+            font-size: 13px;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+        .confidence-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .confidence-bar .bar {
+            flex: 1;
+            height: 8px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .confidence-bar .bar-fill {
+            height: 100%;
+            background: #00c6fb;
+            border-radius: 4px;
+        }
+        .confidence-bar .percent {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .suggestion-card {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .suggestion-card h5 {
+            color: #4caf50;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .suggestion-card p {
+            color: #333;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        .suggestion-card ul {
+            margin: 10px 0 0 20px;
+            color: #333;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+        .warning-card {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .warning-card h5 {
+            color: #ff9800;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .warning-card p {
+            color: #333;
+            font-size: 13px;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .action-buttons .btn {
+            flex: 1;
+            justify-content: center;
+        }
+        .history-item {
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .history-item h5 {
+            color: #333;
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+        .history-item p {
+            color: #666;
+            font-size: 12px;
+        }
+        .medication-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+        .medication-item .name {
+            font-size: 14px;
+            color: #333;
+        }
+        .medication-item .dose {
+            font-size: 12px;
+            color: #666;
+        }
+        .ai-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            background: linear-gradient(135deg, #00c6fb 0%, #005bea 100%);
+            color: white;
+            border-radius: 12px;
+            font-size: 11px;
+        }
+        @media (max-width: 1024px) {
+            .main-grid { grid-template-columns: 1fr; }
+            .vital-signs { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1><i class="fas fa-brain"></i> AI辅助诊断</h1>
+            <p>异常数据分析 · 病因推断 · 处置建议 · 用药指导</p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <a href="/home" target="_top" class="btn btn-outline"><i class="fas fa-arrow-left"></i> 返回</a>
+            <a href="ai-risk-warning.html" class="btn btn-outline"><i class="fas fa-shield-alt"></i> 风险预警</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="main-grid">
+            <div>
+                <div class="card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-user-injured"></i> 选择诊断对象</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="patient-select">
+                            <i class="fas fa-search" style="color: #666;"></i>
+                            <select><option value="">正在加载老人列表...</option></select>
+                        </div>
+                        
+                        <div class="patient-info-card">
+                            <div class="patient-avatar"><i class="fas fa-user"></i></div>
+                            <div class="patient-details">
+                                <h4>请选择老人</h4>
+                                <p>将自动加载档案、体征与诊断建议</p>
+                            </div>
+                        </div>
+                        
+                        <div class="vital-signs">
+                            <div class="vital-item heart">
+                                <i class="fas fa-heartbeat"></i>
+                                <div class="value">125</div>
+                                <div class="label">心率 bpm</div>
+                            </div>
+                            <div class="vital-item bp warning">
+                                <i class="fas fa-tint"></i>
+                                <div class="value">158/95</div>
+                                <div class="label">血压 mmHg</div>
+                            </div>
+                            <div class="vital-item sugar">
+                                <i class="fas fa-candy-cane"></i>
+                                <div class="value">6.2</div>
+                                <div class="label">血氧 %</div>
+                            </div>
+                            <div class="vital-item temp">
+                                <i class="fas fa-thermometer-half"></i>
+                                <div class="value">36.5</div>
+                                <div class="label">体温 ℃</div>
+                            </div>
+                        </div>
+                        <div class="vital-meta">
+                            <span id="vitalSourceText">数据来源：健康档案</span>
+                            <span id="vitalUpdateText">更新时间：--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 20px;">
+                    <div class="card-header">
+                        <h4><i class="fas fa-notes-medical"></i> 输入异常数据</h4>
+                        <span class="ai-badge"><i class="fas fa-robot"></i> AI分析</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="input-section">
+                            <h5>异常指标描述</h5>
+                            <textarea placeholder="请输入观察到的异常数据，如：心率持续偏高125bpm，血压158/95mmHg，伴有胸闷气短症状..."></textarea>
+                        </div>
+                        
+                        <div class="input-section">
+                            <h5>快速选择症状</h5>
+                            <div class="symptom-tags">
+                                <button class="symptom-tag selected">心率异常</button>
+                                <button class="symptom-tag selected">血压偏高</button>
+                                <button class="symptom-tag">胸闷</button>
+                                <button class="symptom-tag">气短</button>
+                                <button class="symptom-tag">头晕</button>
+                                <button class="symptom-tag">恶心</button>
+                                <button class="symptom-tag">乏力</button>
+                                <button class="symptom-tag">失眠</button>
+                                <button class="symptom-tag">食欲不振</button>
+                                <button class="symptom-tag">血糖异常</button>
+                            </div>
+                        </div>
+                        
+                        <button class="analyze-btn" onclick="analyzeData()">
+                            <i class="fas fa-brain"></i> AI智能分析
+                        </button>
+                    </div>
+                </div>
+
+                <div class="result-section">
+                    <div class="diagnosis-result">
+                        <h4><i class="fas fa-robot"></i> AI诊断分析结果</h4>
+                        
+                        <div class="diagnosis-item">
+                            <h5><i class="fas fa-diagnoses"></i> 初步诊断</h5>
+                            <p><strong>高血压急症（可能）</strong></p>
+                            <p style="margin-top: 8px;">结合心率持续偏高、血压升高、胸闷气短等症状，以及患者高血压病史，初步判断可能为血压控制不佳导致的高血压急症，需排除急性心力衰竭。</p>
+                            <div class="confidence-bar">
+                                <div class="bar"><div class="bar-fill" style="width: 78%;"></div></div>
+                                <span class="percent">78%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="diagnosis-item">
+                            <h5><i class="fas fa-exclamation-triangle"></i> 风险评估</h5>
+                            <p><strong style="color: #f44336;">高风险</strong> - 需立即干预</p>
+                            <p style="margin-top: 8px;">当前血压已达2级高血压水平，心率明显增快，存在心脑血管事件风险，建议立即采取措施。</p>
+                        </div>
+                        
+                        <div class="diagnosis-item">
+                            <h5><i class="fas fa-pills"></i> 用药建议</h5>
+                            <p>1. 硝苯地平控释片 30mg 口服（如家中备有）</p>
+                            <p>2. 保持安静休息，避免情绪激动</p>
+                            <p>3. 持续监测血压和心率变化</p>
+                            <p style="margin-top: 8px; opacity: 0.8;"><i class="fas fa-info-circle"></i> 以上建议仅供参考，具体用药请遵医嘱</p>
+                        </div>
+                    </div>
+                    
+                    <div class="suggestion-card">
+                        <h5><i class="fas fa-ambulance"></i> 处置建议</h5>
+                        <p><strong>建议立即派医</strong></p>
+                        <ul>
+                            <li>现场测量血压、心率、血氧</li>
+                            <li>评估心功能状态，排除急性心衰</li>
+                            <li>如症状加重，建议转诊至上级医院</li>
+                            <li>通知家属，告知当前情况</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="warning-card">
+                        <h5><i class="fas fa-exclamation-circle"></i> 注意事项</h5>
+                        <p>患者有高血脂病史5年，需注意心血管并发症风险。建议完善心电图检查，排除心律失常。</p>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button class="btn btn-danger" data-require-role="admin,service"><i class="fas fa-ambulance"></i> 立即派医</button>
+                        <button class="btn btn-warning"><i class="fas fa-phone"></i> 电话指导</button>
+                        <button class="btn btn-primary"><i class="fas fa-file-medical"></i> 生成报告</button>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-history"></i> 病史信息</h4>
+                    </div>
+                    <div class="card-body">
+                        <h5 style="font-size: 13px; color: #666; margin-bottom: 10px;">既往病史</h5>
+                        <div class="history-item">
+                            <h5>正在加载病史...</h5>
+                            <p>请稍候</p>
+                        </div>
+                        
+                        <h5 style="font-size: 13px; color: #666; margin: 15px 0 10px;">当前用药</h5>
+                        <div class="medication-item">
+                            <span class="name">加载中</span>
+                            <span class="dose">--</span>
+                        </div>
+                        
+                        <h5 style="font-size: 13px; color: #666; margin: 15px 0 10px;">过敏史</h5>
+                        <p style="font-size: 13px; color: #333;">加载中</p>
+                    </div>
+                </div>
+                
+                <div class="card" style="margin-top: 20px;">
+                    <div class="card-header">
+                        <h4><i class="fas fa-chart-line"></i> 近期数据趋势</h4>
+                    </div>
+                    <div class="card-body">
+                        <div style="margin-bottom: 15px;">
+                            <h5 style="font-size: 13px; color: #666; margin-bottom: 8px;">血压趋势（近7天）</h5>
+                            <div style="display: flex; justify-content: space-between; font-size: 12px; color: #333;">
+                                <span>平均: --</span>
+                                <span style="color: #999;">加载中</span>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <h5 style="font-size: 13px; color: #666; margin-bottom: 8px;">心率趋势（近7天）</h5>
+                            <div style="display: flex; justify-content: space-between; font-size: 12px; color: #333;">
+                                <span>平均: --</span>
+                                <span style="color: #999;">加载中</span>
+                            </div>
+                        </div>
+                        <div>
+                            <h5 style="font-size: 13px; color: #666; margin-bottom: 8px;">用药依从性</h5>
+                            <div style="display: flex; justify-content: space-between; font-size: 12px; color: #333;">
+                                <span>本周: --</span>
+                                <span style="color: #999;">加载中</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card" style="margin-top: 20px;">
+                    <div class="card-header">
+                        <h4><i class="fas fa-robot"></i> AI智能推荐</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="suggestion-card" style="background: #e3f2fd; border-left-color: #2196f3;">
+                            <h5 style="color: #2196f3;"><i class="fas fa-user-md"></i> 推荐医生</h5>
+                            <p><strong>加载中</strong></p>
+                            <p style="font-size: 12px; margin-top: 5px;">正在生成推荐医生...</p>
+                        </div>
+                        
+                        <div class="suggestion-card" style="background: #fce4ec; border-left-color: #e91e63;">
+                            <h5 style="color: #e91e63;"><i class="fas fa-hospital"></i> 推荐转诊</h5>
+                            <p><strong>加载中</strong></p>
+                            <p style="font-size: 12px; margin-top: 5px;">正在生成转诊建议...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        if (!requirePagePermission('ai-diagnosis')) {
+            document.body.innerHTML = '<div style="text-align: center; padding: 100px; font-size: 18px; color: #666;">无访问权限，正在返回首页...</div>';
+        }
+
+        const diagState = {
+            elderlyList: [],
+            selectedId: null,
+            selectedDetail: null,
+            orders: [],
+            doctors: [],
+            lastDiagnosis: null,
+            selectedSymptoms: new Set(['心率异常', '血压偏高'])
+        };
+        const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        function canDispatchOrder() {
+            return ['admin', 'service'].includes(currentUser.role);
+        }
+        const MOCK_CONNECTED_VITALS = {
+            heart_rate: 86,
+            blood_pressure_high: 136,
+            blood_pressure_low: 84,
+            blood_oxygen: 97,
+            temperature: 36.6,
+            recorded_at: new Date().toISOString()
+        };
+
+        function calcAge(birthDate) {
+            if (!birthDate) return '未知';
+            const y = Number(String(birthDate).slice(0, 4));
+            if (!y) return '未知';
+            return String(new Date().getFullYear() - y);
+        }
+
+        function riskLabel(elderly) {
+            const lv = String(elderly?.risk_level || '').toLowerCase();
+            if (lv.includes('高')) return '高风险';
+            if (lv.includes('中')) return '中风险';
+            return '低风险';
+        }
+
+        function activeOrderStatuses() {
+            return new Set(['待接单', '已接单', '已到达']);
+        }
+
+        function getLatestVital(detail) {
+            const list = detail?.healthData || [];
+            return list[0] || null;
+        }
+
+        function getDisplayVital(detail) {
+            const real = getLatestVital(detail);
+            if (real) return { vital: real, isMock: false };
+            return { vital: MOCK_CONNECTED_VITALS, isMock: true };
+        }
+
+        function fmtTime(v) {
+            if (!v) return '--';
+            const d = new Date(v);
+            if (Number.isNaN(d.getTime())) return '--';
+            return d.toLocaleString('zh-CN', { hour12: false });
+        }
+
+        function avg(nums) {
+            if (!nums.length) return 0;
+            return nums.reduce((s, n) => s + n, 0) / nums.length;
+        }
+
+        function bpText(high, low) {
+            if (!high || !low) return '--/--';
+            return `${high}/${low}`;
+        }
+
+        function renderPatientSelect() {
+            const select = document.querySelector('.patient-select select');
+            if (!select) return;
+            select.innerHTML = '<option value="">请选择老人...</option>' + diagState.elderlyList.map((e) => {
+                return `<option value="${e.id}">${e.name} - ${calcAge(e.birth_date)}岁 - ${e.chronic_diseases || '慢病信息待补充'}</option>`;
+            }).join('');
+            if (!diagState.selectedId && diagState.elderlyList[0]) diagState.selectedId = diagState.elderlyList[0].id;
+            select.value = String(diagState.selectedId || '');
+            select.onchange = async () => {
+                diagState.selectedId = Number(select.value);
+                await loadSelectedDetail();
+                renderSelectedPatient();
+                renderSidebar();
+            };
+        }
+
+        function renderSelectedPatient() {
+            const elderly = diagState.elderlyList.find((e) => Number(e.id) === Number(diagState.selectedId));
+            if (!elderly) return;
+            const card = document.querySelector('.patient-info-card');
+            if (card) {
+                const nameEl = card.querySelector('.patient-details h4');
+                const descEl = card.querySelector('.patient-details p');
+                if (nameEl) {
+                    nameEl.innerHTML = `${elderly.name} <span style="font-size: 12px; color: ${riskLabel(elderly) === '高风险' ? '#f44336' : '#ff9800'};">● ${riskLabel(elderly)}</span>`;
+                }
+                if (descEl) {
+                    descEl.textContent = `${elderly.gender || '未知'} · ${calcAge(elderly.birth_date)}岁 · ${elderly.address || '地址待完善'}`;
+                }
+            }
+
+            const vitalData = getDisplayVital(diagState.selectedDetail);
+            const vital = vitalData.vital;
+            const vals = [
+                vital?.heart_rate ? String(vital.heart_rate) : '--',
+                bpText(vital?.blood_pressure_high, vital?.blood_pressure_low),
+                vital?.blood_oxygen ? String(vital.blood_oxygen) : '--',
+                vital?.temperature ? String(vital.temperature) : '--'
+            ];
+            const vitalItems = document.querySelectorAll('.vital-signs .vital-item');
+            vitalItems.forEach((item, idx) => {
+                const valueEl = item.querySelector('.value');
+                if (valueEl) valueEl.textContent = vals[idx];
+            });
+            const sourceEl = document.getElementById('vitalSourceText');
+            const timeEl = document.getElementById('vitalUpdateText');
+            if (vital && !vitalData.isMock) {
+                if (sourceEl) sourceEl.textContent = '数据来源：设备同步健康数据（真实）';
+                if (timeEl) timeEl.textContent = `更新时间：${fmtTime(vital.recorded_at || vital.created_at)}`;
+            } else {
+                if (sourceEl) sourceEl.textContent = '数据来源：连接后示例（非真实数据）';
+                if (timeEl) timeEl.textContent = `更新时间：${fmtTime(vital?.recorded_at)}（示例）`;
+            }
+
+            const textarea = document.querySelector('.input-section textarea');
+            if (textarea) {
+                textarea.value = `老人${elderly.name}（${riskLabel(elderly)}）近期出现异常，请结合生命体征与症状进行AI辅助判断。`;
+            }
+        }
+
+        function renderSymptoms() {
+            document.querySelectorAll('.symptom-tag').forEach(tag => {
+                const label = tag.textContent.trim();
+                tag.classList.toggle('selected', diagState.selectedSymptoms.has(label));
+                tag.onclick = () => {
+                    if (diagState.selectedSymptoms.has(label)) {
+                        diagState.selectedSymptoms.delete(label);
+                    } else {
+                        diagState.selectedSymptoms.add(label);
+                    }
+                    renderSymptoms();
+                };
+            });
+        }
+
+        function genDiagnosis(elderly) {
+            const symptomCount = diagState.selectedSymptoms.size;
+            const symptoms = Array.from(diagState.selectedSymptoms);
+            const vital = getLatestVital(diagState.selectedDetail);
+            const hr = Number(vital?.heart_rate || 0);
+            const bpHigh = Number(vital?.blood_pressure_high || 0);
+            let risk = '中风险';
+            if (symptoms.includes('心率异常') || symptoms.includes('血压偏高') || symptomCount >= 4 || hr >= 110 || bpHigh >= 160) risk = '高风险';
+            if (symptomCount <= 1) risk = '低风险';
+            const confidence = risk === '高风险' ? 82 : risk === '中风险' ? 68 : 52;
+            return {
+                title: risk === '高风险' ? '心脑血管并发风险（需立即复核）' : risk === '中风险' ? '慢病波动风险（建议当日干预）' : '轻度异常（持续观察）',
+                risk,
+                confidence,
+                summary: `结合${elderly.name}的慢病档案、当前症状（${symptoms.join('、') || '暂无明显症状'}）与生命体征（心率${hr || '--'}，收缩压${bpHigh || '--'}），AI判断当前为${risk}。`
+            };
+        }
+
+        function renderDiagnosisResult(result) {
+            const diagnosisCards = document.querySelectorAll('.diagnosis-result .diagnosis-item');
+            if (diagnosisCards.length >= 2) {
+                const diagBody = diagnosisCards[0].querySelectorAll('p');
+                if (diagBody[0]) diagBody[0].innerHTML = `<strong>${result.title}</strong>`;
+                if (diagBody[1]) diagBody[1].textContent = result.summary;
+                const barFill = diagnosisCards[0].querySelector('.bar-fill');
+                const percent = diagnosisCards[0].querySelector('.percent');
+                if (barFill) barFill.style.width = `${result.confidence}%`;
+                if (percent) percent.textContent = `${result.confidence}%`;
+
+                const riskP = diagnosisCards[1].querySelectorAll('p');
+                if (riskP[0]) riskP[0].innerHTML = `<strong style="color:${result.risk === '高风险' ? '#f44336' : result.risk === '中风险' ? '#ff9800' : '#4caf50'};">${result.risk}</strong> - ${result.risk === '高风险' ? '需立即干预' : result.risk === '中风险' ? '建议尽快干预' : '可持续观察'}`;
+                if (riskP[1]) riskP[1].textContent = `当前触发症状数：${diagState.selectedSymptoms.size}，系统将自动同步到工单与告警协同流程。`;
+            }
+
+            const suggestion = document.querySelector('.suggestion-card ul');
+            if (suggestion) {
+                suggestion.innerHTML = `
+                    <li>现场复测血压、心率、血氧并记录</li>
+                    <li>按${result.risk}等级执行社区响应SOP</li>
+                    <li>通知家属同步当前观察结果</li>
+                    <li>必要时安排转诊至上级医院</li>
+                `;
+            }
+            const warningP = document.querySelector('.warning-card p');
+            if (warningP) {
+                warningP.textContent = `AI提示：本次分析基于实时数据与症状标签自动生成，请医生结合面诊结果最终判定。`;
+            }
+        }
+
+        async function analyzeData() {
+            const elderly = diagState.elderlyList.find((e) => Number(e.id) === Number(diagState.selectedId));
+            if (!elderly) return alert('请先选择诊断对象');
+            const btn = document.querySelector('.analyze-btn');
+            if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 分析中...';
+            await new Promise((r) => setTimeout(r, 700));
+            const result = genDiagnosis(elderly);
+            diagState.lastDiagnosis = result;
+            renderDiagnosisResult(result);
+            if (btn) btn.innerHTML = '<i class="fas fa-brain"></i> AI智能分析';
+        }
+
+        window.analyzeData = analyzeData;
+
+        async function dispatchFromDiagnosis() {
+            if (!canDispatchOrder()) return alert('当前账号无派医权限');
+            const elderly = diagState.elderlyList.find((e) => Number(e.id) === Number(diagState.selectedId));
+            if (!elderly) return alert('请先选择老人');
+            try {
+                const activeStatuses = activeOrderStatuses();
+                const existing = diagState.orders.find((o) => Number(o.elderly_id) === Number(elderly.id) && activeStatuses.has(o.status));
+                if (existing) {
+                    return alert(`该老人已有进行中工单：${existing.order_no}（${existing.status}）`);
+                }
+                const onlineDoctors = (diagState.doctors || []).filter((d) => d.status === '在线');
+                const doctor = onlineDoctors.sort((a, b) => (b.rating || 0) - (a.rating || 0))[0];
+                if (!doctor) return alert('当前无在线医生可接单');
+                if (!diagState.lastDiagnosis) {
+                    const result = genDiagnosis(elderly);
+                    diagState.lastDiagnosis = result;
+                    renderDiagnosisResult(result);
+                }
+                const res = await api.orders.create({
+                    elderly_id: elderly.id,
+                    doctor_id: doctor.id,
+                    urgency: diagState.lastDiagnosis?.risk === '高风险' ? '紧急' : '一般',
+                    description: `AI辅助诊断建议派医：${Array.from(diagState.selectedSymptoms).join('、') || '异常症状'}；判定：${diagState.lastDiagnosis?.risk || '待评估'}`
+                });
+                if (res.success) {
+                    await api.doctors.updateStatus(doctor.id, { status: '忙碌' });
+                    await loadDiagnosisData();
+                    alert(`已派医，工单号：${res.data.order_no}；接诊医生：${doctor.name}`);
+                }
+            } catch (e) {
+                alert('派医失败：' + e.message);
+            }
+        }
+
+        function renderSidebar() {
+            const elderly = diagState.elderlyList.find((e) => Number(e.id) === Number(diagState.selectedId));
+            if (!elderly) return;
+            const historyBody = document.querySelector('.card .card-body');
+            const cards = document.querySelectorAll('.main-grid > div:nth-child(2) .card');
+            const historyCard = cards[0];
+            const trendCard = cards[1];
+            const recommendCard = cards[2];
+
+            if (historyCard) {
+                const body = historyCard.querySelector('.card-body');
+                if (body) {
+                    body.innerHTML = `
+                        <h5 style="font-size: 13px; color: #666; margin-bottom: 10px;">既往病史</h5>
+                        <div class="history-item"><h5>${elderly.chronic_diseases || '慢病信息待完善'}</h5><p>来源：老人档案</p></div>
+                        <h5 style="font-size: 13px; color: #666; margin: 15px 0 10px;">过敏史</h5>
+                        <p style="font-size: 13px; color: #333;">${elderly.allergies || '未记录'}</p>
+                    `;
+                }
+            }
+
+            if (trendCard) {
+                const relatedOrders = diagState.orders.filter((o) => Number(o.elderly_id) === Number(elderly.id));
+                const finished = relatedOrders.filter((o) => o.status === '已完成').length;
+                const active = relatedOrders.filter((o) => activeOrderStatuses().has(o.status)).length;
+                const healthData = diagState.selectedDetail?.healthData || [];
+                const week = healthData.slice(0, 7);
+                const prev = healthData.slice(7, 14);
+                const weekHr = avg(week.map((x) => Number(x.heart_rate || 0)).filter(Boolean));
+                const prevHr = avg(prev.map((x) => Number(x.heart_rate || 0)).filter(Boolean));
+                const weekBpHigh = avg(week.map((x) => Number(x.blood_pressure_high || 0)).filter(Boolean));
+                const prevBpHigh = avg(prev.map((x) => Number(x.blood_pressure_high || 0)).filter(Boolean));
+                const body = trendCard.querySelector('.card-body');
+                if (body) {
+                    body.innerHTML = `
+                        <div style="margin-bottom: 15px;">
+                            <h5 style="font-size: 13px; color: #666; margin-bottom: 8px;">近30天工单</h5>
+                            <div style="display: flex; justify-content: space-between; font-size: 12px; color: #333;">
+                                <span>总数: ${relatedOrders.length}</span>
+                                <span style="color: #2196f3;">进行中: ${active} / 已完成: ${finished}</span>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <h5 style="font-size: 13px; color: #666; margin-bottom: 8px;">近期心率趋势（近7次）</h5>
+                            <div style="display: flex; justify-content: space-between; font-size: 12px; color: #333;">
+                                <span>平均: ${weekHr ? weekHr.toFixed(1) + ' bpm' : '--'}</span>
+                                <span style="color: ${(weekHr && prevHr && weekHr > prevHr) ? '#f44336' : '#4caf50'};">${(weekHr && prevHr) ? (weekHr > prevHr ? '↑ 较上周期升高' : '↓ 较上周期下降') : '数据不足'}</span>
+                            </div>
+                        </div>
+                        <div>
+                            <h5 style="font-size: 13px; color: #666; margin-bottom: 8px;">近期收缩压趋势（近7次）</h5>
+                            <div style="display: flex; justify-content: space-between; font-size: 12px; color: #333;">
+                                <span>平均: ${weekBpHigh ? weekBpHigh.toFixed(0) + ' mmHg' : '--'}</span>
+                                <span style="color: ${(weekBpHigh && prevBpHigh && weekBpHigh > prevBpHigh) ? '#f44336' : '#4caf50'};">${(weekBpHigh && prevBpHigh) ? (weekBpHigh > prevBpHigh ? '↑ 较上周期升高' : '↓ 较上周期下降') : '数据不足'}</span>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            if (recommendCard) {
+                const body = recommendCard.querySelector('.card-body');
+                if (body) {
+                    body.innerHTML = `
+                        <div class="suggestion-card" style="background: #e3f2fd; border-left-color: #2196f3;">
+                            <h5 style="color: #2196f3;"><i class="fas fa-user-md"></i> 推荐处置方式</h5>
+                            <p><strong>${riskLabel(elderly) === '高风险' ? '优先派医上门' : '社区医生电话随访'}</strong></p>
+                            <p style="font-size: 12px; margin-top: 5px;">根据当前风险等级自动推荐，可在工单页面继续协同处理。</p>
+                        </div>
+                        <div class="suggestion-card" style="background: #fce4ec; border-left-color: #e91e63;">
+                            <h5 style="color: #e91e63;"><i class="fas fa-hospital"></i> 转诊建议</h5>
+                            <p><strong>${riskLabel(elderly) === '高风险' ? '建议准备转诊评估' : '暂不建议转诊'}</strong></p>
+                            <p style="font-size: 12px; margin-top: 5px;">仅作辅助建议，最终以医生判断为准。</p>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        async function loadDiagnosisData() {
+            try {
+                const [elderlyRes, ordersRes, doctorsRes] = await Promise.all([
+                    api.elderly.getList({ pageSize: 200 }),
+                    api.orders.getList({ pageSize: 500 }),
+                    api.doctors.getList()
+                ]);
+                diagState.elderlyList = elderlyRes?.data?.list || [];
+                diagState.orders = ordersRes?.data?.list || [];
+                diagState.doctors = doctorsRes?.data || [];
+                renderPatientSelect();
+                await loadSelectedDetail();
+                renderSelectedPatient();
+                renderSymptoms();
+                renderSidebar();
+            } catch (e) {
+                alert('加载AI辅助诊断数据失败：' + e.message);
+            }
+        }
+
+        async function loadSelectedDetail() {
+            if (!diagState.selectedId) {
+                diagState.selectedDetail = null;
+                return;
+            }
+            try {
+                const detailRes = await api.elderly.getById(diagState.selectedId);
+                diagState.selectedDetail = detailRes?.data || null;
+            } catch (e) {
+                diagState.selectedDetail = null;
+            }
+        }
+
+        const dangerBtn = document.querySelector('.action-buttons .btn-danger');
+        const warnBtn = document.querySelector('.action-buttons .btn-warning');
+        const primaryBtn = document.querySelector('.action-buttons .btn-primary');
+        if (dangerBtn) dangerBtn.addEventListener('click', dispatchFromDiagnosis);
+        if (dangerBtn && !canDispatchOrder()) {
+            dangerBtn.disabled = true;
+            dangerBtn.style.opacity = '0.6';
+            dangerBtn.title = '当前账号无派医权限';
+        }
+        if (warnBtn) warnBtn.addEventListener('click', async () => {
+            const elderly = diagState.elderlyList.find((e) => Number(e.id) === Number(diagState.selectedId));
+            if (!elderly) return alert('请先选择老人');
+            try {
+                await api.alerts.create({
+                    elderly_id: elderly.id,
+                    alert_type: '电话指导',
+                    alert_level: 2,
+                    title: `${elderly.name}电话指导记录`,
+                    content: `AI辅助诊断已发起电话指导，症状：${Array.from(diagState.selectedSymptoms).join('、') || '未选择症状'}`,
+                    location: elderly.address || '社区'
+                });
+                alert('电话指导记录已写入告警中心');
+            } catch (e) {
+                alert('电话指导记录失败：' + e.message);
+            }
+        });
+        if (primaryBtn) primaryBtn.addEventListener('click', () => {
+            const elderly = diagState.elderlyList.find((e) => Number(e.id) === Number(diagState.selectedId));
+            if (!elderly) return alert('请先选择老人');
+            const result = diagState.lastDiagnosis || genDiagnosis(elderly);
+            const lines = [
+                `AI辅助诊断报告`,
+                `老人：${elderly.name}`,
+                `时间：${new Date().toLocaleString('zh-CN')}`,
+                `风险判定：${result.risk}`,
+                `初步诊断：${result.title}`,
+                `结论：${result.summary}`,
+                `症状：${Array.from(diagState.selectedSymptoms).join('、') || '无'}`
+            ];
+            const blob = new Blob(["\uFEFF" + lines.join('\n')], { type: "text/plain;charset=utf-8;" });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `AI诊断报告_${elderly.name}_${new Date().toISOString().slice(0,10)}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(a.href);
+        });
+
+        loadDiagnosisData();
+        setInterval(loadDiagnosisData, 30000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: elderly-monitoring-system
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    workingDir: server
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_SECRET
+        value: elderly_monitoring_secret_2026

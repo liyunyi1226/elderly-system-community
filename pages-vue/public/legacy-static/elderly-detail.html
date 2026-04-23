@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>老年人详情 - 老年人监护系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background-color: #f0f2f5;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 20px 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 24px;
+        }
+        .back-btn {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border: 1px solid white;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+        .back-btn:hover {
+            background: white;
+            color: #1e3c72;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+        .profile-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+        }
+        .profile-info h2 {
+            font-size: 32px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .status-badge {
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-block;
+        }
+        .status-critical {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .info-item {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .info-item label {
+            display: block;
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+        .info-item p {
+            color: #333;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        .health-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .metric-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .metric-card h4 {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        .metric-value {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        .metric-value.danger {
+            color: #ff4757;
+        }
+        .metric-value.warning {
+            color: #ffa502;
+        }
+        .metric-value.normal {
+            color: #4CAF50;
+        }
+        .metric-unit {
+            color: #999;
+            font-size: 14px;
+        }
+        .metric-status {
+            margin-top: 10px;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 12px;
+            display: inline-block;
+        }
+        .metric-status.danger {
+            background: #fff5f5;
+            color: #ff4757;
+        }
+        .metric-status.warning {
+            background: #fffaf0;
+            color: #ffa502;
+        }
+        .metric-status.normal {
+            background: #f0fff4;
+            color: #4CAF50;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            padding: 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card-header h4 {
+            color: #333;
+            font-size: 18px;
+        }
+        .card-body {
+            padding: 20px;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        .ai-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            font-size: 12px;
+        }
+        .ai-analysis {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        .ai-analysis h5 {
+            color: #667eea;
+            font-size: 15px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .ai-analysis p {
+            color: #555;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .ai-analysis ul {
+            margin-top: 10px;
+            padding-left: 20px;
+        }
+        .ai-analysis li {
+            color: #555;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        .risk-indicator {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: #fff5f5;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .risk-indicator .risk-level {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .risk-indicator.high .risk-level {
+            background: #ff4757;
+            color: white;
+        }
+        .risk-indicator.medium .risk-level {
+            background: #ffa502;
+            color: white;
+        }
+        .risk-indicator.low .risk-level {
+            background: #4CAF50;
+            color: white;
+        }
+        .risk-info h5 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        .risk-info p {
+            color: #666;
+            font-size: 13px;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn-danger {
+            background: #ff4757;
+            color: white;
+            flex: 1;
+        }
+        .btn-primary {
+            background: #1e3c72;
+            color: white;
+            flex: 1;
+        }
+        .btn-ai {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            background: white;
+            padding: 10px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .tab {
+            padding: 12px 24px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 14px;
+            border-radius: 8px;
+            transition: all 0.3s;
+            color: #666;
+        }
+        .tab.active {
+            background: #1e3c72;
+            color: white;
+        }
+        .tab:hover:not(.active) {
+            background: #f0f0f0;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .communication-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .communication-item {
+            display: flex;
+            gap: 15px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        .communication-item.outbound {
+            border-left-color: #3498db;
+        }
+        .communication-item.inbound {
+            border-left-color: #27ae60;
+        }
+        .communication-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        .communication-item.outbound .communication-icon {
+            background: #e3f2fd;
+            color: #3498db;
+        }
+        .communication-item.inbound .communication-icon {
+            background: #e8f5e9;
+            color: #27ae60;
+        }
+        .communication-content {
+            flex: 1;
+        }
+        .communication-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .communication-header h5 {
+            font-size: 14px;
+            color: #333;
+        }
+        .communication-header .time {
+            font-size: 12px;
+            color: #999;
+        }
+        .communication-body {
+            font-size: 13px;
+            color: #555;
+            line-height: 1.6;
+        }
+        .communication-result {
+            margin-top: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            font-size: 12px;
+        }
+        .communication-result strong {
+            color: #333;
+        }
+        .add-communication {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .add-communication select,
+        .add-communication input,
+        .add-communication textarea {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .add-communication textarea {
+            flex: 1;
+            min-height: 80px;
+            resize: vertical;
+        }
+        .next-follow-up {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: #fff3e0;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        .next-follow-up i {
+            color: #f39c12;
+            font-size: 20px;
+        }
+        .next-follow-up .info {
+            flex: 1;
+        }
+        .next-follow-up h5 {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 3px;
+        }
+        .next-follow-up p {
+            font-size: 12px;
+            color: #666;
+        }
+        @media (max-width: 768px) {
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            .health-metrics {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-user"></i> 老年人详情</h1>
+        <a href="elderly-list.html" class="back-btn"><i class="fas fa-arrow-left"></i> 返回列表</a>
+    </div>
+
+    <div class="container">
+        <div class="profile-section">
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="profile-info">
+                    <h2 id="elderName">张志强</h2>
+                    <span class="status-badge status-critical" id="elderStatus">危重状态</span>
+                </div>
+            </div>
+            
+            <div class="info-grid">
+                <div class="info-item">
+                    <label>年龄</label>
+                    <p id="elderAge">78岁</p>
+                </div>
+                <div class="info-item">
+                    <label>性别</label>
+                    <p id="elderGender">男</p>
+                </div>
+                <div class="info-item">
+                    <label>联系电话</label>
+                    <p id="elderPhone">138****1234</p>
+                </div>
+                <div class="info-item">
+                    <label>家庭住址</label>
+                    <p id="elderAddress">A栋3单元501</p>
+                </div>
+                <div class="info-item">
+                    <label>紧急联系人</label>
+                    <p id="elderEmergency">儿子 张明 139****5678</p>
+                </div>
+                <div class="info-item">
+                    <label>慢性病史</label>
+                    <p id="elderDiseases">高血压、心脏病</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="health-metrics">
+            <div class="metric-card">
+                <h4><i class="fas fa-heartbeat"></i> 心率</h4>
+                <div class="metric-value danger" id="metricHeartRate">145</div>
+                <div class="metric-unit">bpm</div>
+                <span class="metric-status danger" id="metricHeartRateStatus">心率过快</span>
+            </div>
+            <div class="metric-card">
+                <h4><i class="fas fa-tint"></i> 血压</h4>
+                <div class="metric-value danger" id="metricBloodPressure">165/95</div>
+                <div class="metric-unit">mmHg</div>
+                <span class="metric-status danger" id="metricBloodPressureStatus">血压偏高</span>
+            </div>
+            <div class="metric-card">
+                <h4><i class="fas fa-lungs"></i> 血氧</h4>
+                <div class="metric-value danger" id="metricBloodOxygen">92</div>
+                <div class="metric-unit">%</div>
+                <span class="metric-status danger" id="metricBloodOxygenStatus">血氧偏低</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h4><i class="fas fa-robot"></i> AI健康风险评估</h4>
+                <span class="ai-badge"><i class="fas fa-brain"></i> AI分析</span>
+            </div>
+            <div class="card-body">
+                <div class="risk-indicator high">
+                    <div class="risk-level">高</div>
+                    <div class="risk-info">
+                        <h5>当前风险等级：高风险</h5>
+                        <p>多项指标异常，需立即关注并采取干预措施</p>
+                    </div>
+                </div>
+
+                <div class="ai-analysis">
+                    <h5><i class="fas fa-exclamation-triangle"></i> 风险因素分析</h5>
+                    <ul>
+                        <li><strong>心率异常：</strong>当前心率145 bpm，超出正常范围(60-100)，可能存在心律失常风险</li>
+                        <li><strong>血压偏高：</strong>收缩压165 mmHg，舒张压95 mmHg，属于二级高血压</li>
+                        <li><strong>血氧偏低：</strong>血氧饱和度92%，低于正常值(95%以上)，需关注呼吸功能</li>
+                    </ul>
+                </div>
+
+                <div class="ai-analysis">
+                    <h5><i class="fas fa-lightbulb"></i> AI照护建议</h5>
+                    <ul>
+                        <li><strong>紧急措施：</strong>建议立即安排医生上门检查，排除急性心脏事件</li>
+                        <li><strong>用药建议：</strong>建议在医生指导下调整降压药剂量</li>
+                        <li><strong>生活方式：</strong>保持情绪平稳，避免剧烈活动，低盐饮食</li>
+                        <li><strong>监测频率：</strong>建议增加心率、血压监测频率至每2小时一次</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h4><i class="fas fa-chart-line"></i> 24小时健康趋势</h4>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="heartRateChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('health')">
+                <i class="fas fa-heartbeat"></i> 健康记录
+            </button>
+            <button class="tab" onclick="switchTab('communication')">
+                <i class="fas fa-comments"></i> 家属沟通记录
+            </button>
+        </div>
+
+        <div class="tab-content active" id="health-tab">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-history"></i> 近期健康记录</h4>
+                </div>
+                <div class="card-body">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr style="border-bottom: 1px solid #f0f0f0;">
+                            <td style="padding: 15px; color: #666;">2024-01-15 14:28</td>
+                            <td style="padding: 15px; color: #ff4757; font-weight: 600;">心率异常警报</td>
+                            <td style="padding: 15px; color: #666;">心率飙升至 145 bpm</td>
+                            <td style="padding: 15px;"><span class="ai-badge"><i class="fas fa-robot"></i> AI已响应</span></td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #f0f0f0;">
+                            <td style="padding: 15px; color: #666;">2024-01-15 08:00</td>
+                            <td style="padding: 15px; color: #4CAF50;">正常服药</td>
+                            <td style="padding: 15px; color: #666;">降压药已服用</td>
+                            <td style="padding: 15px;"><span class="ai-badge"><i class="fas fa-robot"></i> AI提醒</span></td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #f0f0f0;">
+                            <td style="padding: 15px; color: #666;">2024-01-14 20:15</td>
+                            <td style="padding: 15px; color: #ffa502;">血压偏高</td>
+                            <td style="padding: 15px; color: #666;">血压 152/92 mmHg</td>
+                            <td style="padding: 15px;"><span class="ai-badge"><i class="fas fa-robot"></i> AI记录</span></td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 15px; color: #666;">2024-01-14 10:00</td>
+                            <td style="padding: 15px; color: #4CAF50;">定期检查</td>
+                            <td style="padding: 15px; color: #666;">社区医生上门检查</td>
+                            <td style="padding: 15px;"><span class="ai-badge"><i class="fas fa-robot"></i> AI预约</span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="communication-tab">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-plus-circle"></i> 新增沟通记录</h4>
+                </div>
+                <div class="card-body">
+                    <div class="add-communication" style="flex-direction: column;">
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <select style="width: 150px;">
+                                <option>电话沟通</option>
+                                <option>微信沟通</option>
+                                <option>上门沟通</option>
+                                <option>视频通话</option>
+                            </select>
+                            <select style="width: 200px;">
+                                <option>儿子 张明</option>
+                                <option>女儿 张丽</option>
+                                <option>其他家属</option>
+                            </select>
+                            <input type="datetime-local" style="width: 200px;">
+                        </div>
+                        <textarea placeholder="请输入沟通内容..."></textarea>
+                        <div style="display: flex; gap: 10px; margin-top: 10px; align-items: center;">
+                            <select style="width: 150px;">
+                                <option>沟通结果</option>
+                                <option>已解决</option>
+                                <option>待跟进</option>
+                                <option>需转介</option>
+                            </select>
+                            <input type="date" style="width: 180px;" placeholder="下次随访时间">
+                            <button class="btn btn-primary" style="padding: 10px 20px;">保存记录</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-history"></i> 沟通记录历史</h4>
+                </div>
+                <div class="card-body">
+                    <div class="communication-list">
+                        <div class="communication-item outbound">
+                            <div class="communication-icon">
+                                <i class="fas fa-phone-alt"></i>
+                            </div>
+                            <div class="communication-content">
+                                <div class="communication-header">
+                                    <h5>电话沟通 · 儿子 张明</h5>
+                                    <span class="time">2024-01-15 14:35</span>
+                                </div>
+                                <div class="communication-body">
+                                    通知家属老人心率异常情况，已安排王强军上门检查。家属表示正在赶往社区，预计30分钟到达。
+                                </div>
+                                <div class="communication-result">
+                                    <strong>沟通结果：</strong>家属已知悉，正在赶来<br>
+                                    <strong>下次随访：</strong>2024-01-16 上午
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="communication-item inbound">
+                            <div class="communication-icon">
+                                <i class="fas fa-comment-dots"></i>
+                            </div>
+                            <div class="communication-content">
+                                <div class="communication-header">
+                                    <h5>微信咨询 · 女儿 张丽</h5>
+                                    <span class="time">2024-01-14 16:20</span>
+                                </div>
+                                <div class="communication-body">
+                                    家属询问父亲近期血压控制情况，建议调整降压药剂量。已告知家属近期血压波动情况，建议带老人到医院做进一步检查。
+                                </div>
+                                <div class="communication-result">
+                                    <strong>沟通结果：</strong>已解答，家属计划周末带老人就医<br>
+                                    <strong>下次随访：</strong>2024-01-18
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="communication-item outbound">
+                            <div class="communication-icon">
+                                <i class="fas fa-home"></i>
+                            </div>
+                            <div class="communication-content">
+                                <div class="communication-header">
+                                    <h5>上门沟通 · 儿子 张明</h5>
+                                    <span class="time">2024-01-12 10:00</span>
+                                </div>
+                                <div class="communication-body">
+                                    家属到社区服务中心了解老人近期健康状况。详细介绍了老人的心率、血压监测数据，以及AI健康风险评估结果。讨论了老人用药调整方案。
+                                </div>
+                                <div class="communication-result">
+                                    <strong>沟通结果：</strong>家属满意，已了解情况<br>
+                                    <strong>下次随访：</strong>2024-01-15
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="communication-item outbound">
+                            <div class="communication-icon">
+                                <i class="fas fa-video"></i>
+                            </div>
+                            <div class="communication-content">
+                                <div class="communication-header">
+                                    <h5>视频通话 · 女儿 张丽</h5>
+                                    <span class="time">2024-01-10 15:30</span>
+                                </div>
+                                <div class="communication-body">
+                                    远程视频沟通老人日常照护问题。家属在外地工作，通过视频了解父亲生活状况。建议安装更多智能监测设备，并增加巡访频率。
+                                </div>
+                                <div class="communication-result">
+                                    <strong>沟通结果：</strong>已采纳建议，增加巡访<br>
+                                    <strong>下次随访：</strong>2024-01-12
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="next-follow-up">
+                        <i class="fas fa-calendar-alt"></i>
+                        <div class="info">
+                            <h5>下次计划随访时间</h5>
+                            <p>2024年1月16日 上午 10:00 · 计划方式：电话沟通</p>
+                        </div>
+                        <button class="btn btn-primary" style="padding: 8px 16px; font-size: 13px;">
+                            <i class="fas fa-edit"></i> 修改
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn btn-danger">
+                <i class="fas fa-ambulance"></i> 紧急派医
+            </button>
+            <button class="btn btn-primary">
+                <i class="fas fa-phone"></i> 联系家属
+            </button>
+            <a href="ai-care-summary.html" class="btn btn-ai">
+                <i class="fas fa-file-medical-alt"></i> 查看AI健康日报
+            </a>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        if (!requirePagePermission('elderly-detail')) {
+            document.body.innerHTML = '<div style="text-align: center; padding: 100px; font-size: 18px; color: #666;">无访问权限，正在返回首页...</div>';
+        }
+
+        function parseIdFromQuery() {
+            const params = new URLSearchParams(window.location.search);
+            const id = Number(params.get("id"));
+            return Number.isFinite(id) && id > 0 ? id : null;
+        }
+
+        function calcAge(birthDate) {
+            if (!birthDate) return "-";
+            const birth = new Date(birthDate);
+            const now = new Date();
+            let age = now.getFullYear() - birth.getFullYear();
+            const month = now.getMonth() - birth.getMonth();
+            if (month < 0 || (month === 0 && now.getDate() < birth.getDate())) age -= 1;
+            return `${age}岁`;
+        }
+
+        function setMetricStyle(valueEl, statusEl, statusType, text) {
+            valueEl.classList.remove("danger", "warning", "normal");
+            statusEl.classList.remove("danger", "warning", "normal");
+            valueEl.classList.add(statusType);
+            statusEl.classList.add(statusType);
+            statusEl.textContent = text;
+        }
+
+        function normalizeHealthStatus(status) {
+            if (status === "健康" || status === "良好" || status === "健康良好") return "健康良好";
+            if (status === "一般" || status === "需要关注") return "需要关注";
+            if (status === "较差" || status === "危重状态") return "危重状态";
+            return "需要关注";
+        }
+
+        function fillElderlyInfo(data) {
+            document.getElementById("elderName").textContent = data.name || "未知";
+            document.getElementById("elderAge").textContent = calcAge(data.birth_date);
+            document.getElementById("elderGender").textContent = data.gender || "-";
+            document.getElementById("elderPhone").textContent = data.phone || "-";
+            document.getElementById("elderAddress").textContent = data.address || "-";
+            document.getElementById("elderEmergency").textContent = `${data.emergency_contact || "-"} ${data.emergency_phone || ""}`.trim();
+            document.getElementById("elderDiseases").textContent = data.chronic_diseases || "无";
+
+            const statusEl = document.getElementById("elderStatus");
+            const status = normalizeHealthStatus(data.health_status || "健康良好");
+            statusEl.textContent = status;
+            statusEl.className = "status-badge " + (status === "危重状态" ? "status-critical" : "status-warning");
+            if (status === "健康良好") statusEl.className = "status-badge status-healthy";
+
+            const latest = (data.healthData || [])[0] || {};
+            const heartRate = Number(latest.heart_rate || 0);
+            const high = Number(latest.blood_pressure_high || 0);
+            const low = Number(latest.blood_pressure_low || 0);
+            const oxygen = Number(latest.blood_oxygen || 0);
+
+            const heartRateEl = document.getElementById("metricHeartRate");
+            const bloodPressureEl = document.getElementById("metricBloodPressure");
+            const bloodOxygenEl = document.getElementById("metricBloodOxygen");
+            const heartRateStatusEl = document.getElementById("metricHeartRateStatus");
+            const bloodPressureStatusEl = document.getElementById("metricBloodPressureStatus");
+            const bloodOxygenStatusEl = document.getElementById("metricBloodOxygenStatus");
+
+            if (heartRate > 0) heartRateEl.textContent = heartRate;
+            if (high > 0 && low > 0) bloodPressureEl.textContent = `${high}/${low}`;
+            if (oxygen > 0) bloodOxygenEl.textContent = oxygen;
+
+            if (heartRate >= 120) setMetricStyle(heartRateEl, heartRateStatusEl, "danger", "心率过快");
+            else if (heartRate >= 100) setMetricStyle(heartRateEl, heartRateStatusEl, "warning", "心率偏高");
+            else setMetricStyle(heartRateEl, heartRateStatusEl, "normal", "心率正常");
+
+            if (high >= 160 || low >= 100) setMetricStyle(bloodPressureEl, bloodPressureStatusEl, "danger", "血压偏高");
+            else if (high >= 140 || low >= 90) setMetricStyle(bloodPressureEl, bloodPressureStatusEl, "warning", "血压需关注");
+            else setMetricStyle(bloodPressureEl, bloodPressureStatusEl, "normal", "血压正常");
+
+            if (oxygen > 0 && oxygen < 94) setMetricStyle(bloodOxygenEl, bloodOxygenStatusEl, "danger", "血氧偏低");
+            else if (oxygen > 0 && oxygen < 96) setMetricStyle(bloodOxygenEl, bloodOxygenStatusEl, "warning", "血氧需关注");
+            else setMetricStyle(bloodOxygenEl, bloodOxygenStatusEl, "normal", "血氧正常");
+        }
+
+        async function loadElderlyDetail() {
+            const id = parseIdFromQuery();
+            if (!id) {
+                alert("缺少老人ID，已返回列表");
+                window.location.href = "elderly-list.html";
+                return;
+            }
+            try {
+                const res = await api.elderly.getById(id);
+                if (!res.success || !res.data) {
+                    alert("未找到老人信息");
+                    window.location.href = "elderly-list.html";
+                    return;
+                }
+                fillElderlyInfo(res.data);
+            } catch (error) {
+                alert("加载老人详情失败：" + error.message);
+            }
+        }
+
+        if (hasPermission('elderly-detail')) {
+        loadElderlyDetail();
+        const ctx = document.getElementById('heartRateChart').getContext('2d');
+        const hours = Array.from({length: 24}, (_, i) => `${i}:00`);
+        const heartRates = [72, 70, 68, 65, 67, 70, 75, 80, 85, 88, 90, 92, 95, 98, 102, 108, 115, 120, 125, 130, 135, 140, 142, 145];
+        
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: hours,
+                datasets: [{
+                    label: '心率 (bpm)',
+                    data: heartRates,
+                    borderColor: '#ff4757',
+                    backgroundColor: 'rgba(255, 71, 87, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        min: 50,
+                        max: 160,
+                        grid: { color: '#f0f0f0' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            const activeBtn = Array.from(document.querySelectorAll('.tab')).find((btn) => btn.getAttribute('onclick')?.includes(`'${tabName}'`));
+            if (activeBtn) activeBtn.classList.add('active');
+            document.getElementById(tabName + '-tab')?.classList.add('active');
+        }
+    </script>
+</body>
+</html>
