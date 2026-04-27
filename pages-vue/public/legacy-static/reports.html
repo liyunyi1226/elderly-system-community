@@ -150,6 +150,7 @@
             <button class="btn btn-primary" id="refreshReportBtn"><i class="fas fa-rotate-right"></i> 刷新</button>
             <button class="btn btn-primary" id="exportPdfBtn"><i class="fas fa-download"></i> 导出PDF报告</button>
             <button class="btn btn-primary" id="exportExcelBtn"><i class="fas fa-file-excel"></i> 导出Excel</button>
+            <button class="btn" id="exportLedgerBtn" style="background: #1e3c72; color: white;"><i class="fas fa-book"></i> 社区纸质台账</button>
         </div>
 
         <div class="stats-grid">
@@ -248,6 +249,10 @@
         let monthlyChart = null;
         let reportSnapshot = { orders: [], alerts: [], doctors: [], elderlyList: [], days: 30 };
 
+        function alertIsClosed(a) {
+            return a.status === "已处理" || ((a.workflow_stage || "").trim() === "已完结");
+        }
+
         function calcAge(birthDate) {
             if (!birthDate) return "-";
             const birth = new Date(birthDate);
@@ -258,13 +263,16 @@
             return `${age}岁`;
         }
 
-        function renderStats(orders, alerts, doctors, elderlyList) {
-            const checks = elderlyList.length;
-            const rescues = elderlyList.filter((e) => e.risk_level === "高风险").length;
-            const handledAlerts = alerts.filter((a) => a.status === "已处理").length;
-            const alertRate = alerts.length ? ((handledAlerts / alerts.length) * 100).toFixed(1) : "100.0";
-            const completedOrders = orders.filter((o) => o.status === "已完成").length;
-            const completeRate = orders.length ? `${((completedOrders / orders.length) * 100).toFixed(1)}%` : "100%";
+        function renderStats(orders, alerts, doctors, elderlyList, serverStats = null) {
+            const checks = Number(serverStats?.checks ?? elderlyList.length);
+            const rescues = Number(serverStats?.rescues ?? elderlyList.filter((e) => e.risk_level === "高风险").length);
+            const handledAlerts = alerts.filter((a) => alertIsClosed(a)).length;
+            const alertRate = serverStats?.alertHandleRate !== undefined
+                ? Number(serverStats.alertHandleRate).toFixed(1)
+                : (alerts.length ? ((handledAlerts / alerts.length) * 100).toFixed(1) : "100.0");
+            const completeRate = serverStats?.orderCompleteRate !== undefined
+                ? `${Number(serverStats.orderCompleteRate).toFixed(1)}%`
+                : (orders.length ? `${((orders.filter((o) => o.status === "已完成").length / orders.length) * 100).toFixed(1)}%` : "100%");
 
             document.getElementById("reportStatChecks").textContent = checks;
             document.getElementById("reportStatRescue").textContent = rescues;
@@ -279,7 +287,7 @@
                 return acc;
             }, {});
             const pendingAlertById = alerts.reduce((acc, a) => {
-                if (!a.elderly_id || a.status === "已处理") return acc;
+                if (!a.elderly_id || alertIsClosed(a)) return acc;
                 acc[a.elderly_id] = (acc[a.elderly_id] || 0) + 1;
                 return acc;
             }, {});
@@ -378,26 +386,42 @@
         async function loadReportsRealtime() {
             try {
                 const days = Number(document.getElementById("reportPeriod")?.value || 30);
-                const startDate = new Date();
-                startDate.setDate(startDate.getDate() - days);
-                const [ordersRes, alertsRes, doctorsRes, elderlyRes] = await Promise.all([
-                    api.orders.getList({ pageSize: 500 }),
-                    api.alerts.getList({ pageSize: 500 }),
-                    api.doctors.getList(),
-                    api.elderly.getList({ pageSize: 500 })
-                ]);
-                const orders = (ordersRes.data?.list || []).filter((o) => {
-                    const d = new Date(String(o.created_at || "").replace(" ", "T"));
-                    return !Number.isNaN(d.getTime()) && d >= startDate;
-                });
-                const alerts = (alertsRes.data?.list || []).filter((a) => {
-                    const d = new Date(String(a.created_at || "").replace(" ", "T"));
-                    return !Number.isNaN(d.getTime()) && d >= startDate;
-                });
-                const doctors = doctorsRes.data || [];
-                const elderlyList = elderlyRes.data?.list || [];
+                let orders = [];
+                let alerts = [];
+                let doctors = [];
+                let elderlyList = [];
+                let stats = null;
+
+                // 优先使用后端汇总接口，避免前端多接口拼装导致数据口径不一致
+                try {
+                    const reportRes = await api.reports.getOverview(days);
+                    orders = reportRes?.data?.orders || [];
+                    alerts = reportRes?.data?.alerts || [];
+                    doctors = reportRes?.data?.doctors || [];
+                    elderlyList = reportRes?.data?.elderlyList || [];
+                    stats = reportRes?.data?.stats || null;
+                } catch (e) {
+                    const startDate = new Date();
+                    startDate.setDate(startDate.getDate() - days);
+                    const [ordersRes, alertsRes, doctorsRes, elderlyRes] = await Promise.all([
+                        api.orders.getList({ pageSize: 500 }),
+                        api.alerts.getList({ pageSize: 500 }),
+                        api.doctors.getList(),
+                        api.elderly.getList({ pageSize: 500 })
+                    ]);
+                    orders = (ordersRes.data?.list || []).filter((o) => {
+                        const d = new Date(String(o.created_at || "").replace(" ", "T"));
+                        return !Number.isNaN(d.getTime()) && d >= startDate;
+                    });
+                    alerts = (alertsRes.data?.list || []).filter((a) => {
+                        const d = new Date(String(a.created_at || "").replace(" ", "T"));
+                        return !Number.isNaN(d.getTime()) && d >= startDate;
+                    });
+                    doctors = doctorsRes.data || [];
+                    elderlyList = elderlyRes.data?.list || [];
+                }
                 reportSnapshot = { orders, alerts, doctors, elderlyList, days };
-                renderStats(orders, alerts, doctors, elderlyList);
+                renderStats(orders, alerts, doctors, elderlyList, stats);
                 renderRanking(elderlyList, alerts);
                 renderCharts(orders, alerts, elderlyList);
             } catch (error) {
@@ -420,71 +444,26 @@
         }
 
         function exportExcelCsv() {
-            const { orders, alerts, elderlyList, days } = reportSnapshot;
-            if (!orders.length && !alerts.length && !elderlyList.length) {
-                alert("暂无可导出数据，请先刷新报告");
-                return;
-            }
-            const pendingAlertById = alerts.reduce((acc, a) => {
-                if (!a.elderly_id || a.status === "已处理") return acc;
-                acc[a.elderly_id] = (acc[a.elderly_id] || 0) + 1;
-                return acc;
-            }, {});
-            const rows = elderlyList.map((e) => ([
-                e.name || "-",
-                calcAge(e.birth_date),
-                e.risk_level || "-",
-                pendingAlertById[e.id] || 0,
-                e.chronic_diseases || "无",
-                (e.updated_at || e.created_at || "-").split(" ")[0]
-            ]));
-            downloadCsv(
-                `数据报告_近${days}天_${new Date().toISOString().slice(0, 10)}.csv`,
-                ["姓名", "年龄", "风险等级", "未处理告警", "主要风险", "最近更新日期"],
-                rows
-            );
+            const days = Number(document.getElementById("reportPeriod")?.value || reportSnapshot.days || 30);
+            const url = api.reports.exportCsvUrl(days);
+            window.location.href = url;
         }
 
         function exportPdfReport() {
-            const { orders, alerts, elderlyList, days } = reportSnapshot;
-            const handledAlerts = alerts.filter((a) => a.status === "已处理").length;
-            const alertRate = alerts.length ? ((handledAlerts / alerts.length) * 100).toFixed(1) : "100.0";
-            const completedOrders = orders.filter((o) => o.status === "已完成").length;
-            const completeRate = orders.length ? ((completedOrders / orders.length) * 100).toFixed(1) : "100.0";
-            const highRisk = elderlyList.filter((e) => e.risk_level === "高风险").length;
-            const html = `
-                <html><head><meta charset="utf-8"><title>数据报告</title>
-                <style>
-                    body{font-family:Arial,'Microsoft YaHei';padding:24px;color:#222;}
-                    h1{margin:0 0 8px;} .meta{color:#666;margin-bottom:16px;}
-                    .kpi{display:grid;grid-template-columns:repeat(2,minmax(220px,1fr));gap:10px;margin-bottom:16px;}
-                    .item{padding:10px;border:1px solid #eee;border-radius:8px;}
-                    table{width:100%;border-collapse:collapse;margin-top:8px;}
-                    th,td{border:1px solid #eee;padding:8px;text-align:left;font-size:12px;}
-                    th{background:#f6f8fb;}
-                </style></head><body>
-                <h1>社区老年人监护系统 - 数据报告</h1>
-                <div class="meta">统计范围：近${days}天 ｜ 导出时间：${new Date().toLocaleString()}</div>
-                <div class="kpi">
-                    <div class="item">在管老人：<strong>${elderlyList.length}</strong></div>
-                    <div class="item">高风险老人：<strong>${highRisk}</strong></div>
-                    <div class="item">告警处理率：<strong>${alertRate}%</strong></div>
-                    <div class="item">工单完成率：<strong>${completeRate}%</strong></div>
-                </div>
-                <h3>重点关注老人（前12）</h3>
-                <table>${document.querySelector(".report-table").innerHTML}</table>
-                </body></html>
-            `;
-            const w = window.open("", "_blank");
+            const days = Number(document.getElementById("reportPeriod")?.value || reportSnapshot.days || 30);
+            const url = api.reports.exportPrintUrl(days);
+            const w = window.open(url, "_blank");
             if (!w) return alert("浏览器拦截了弹窗，请允许后重试");
-            w.document.write(html);
-            w.document.close();
-            w.focus();
-            w.print();
+        }
+
+        function exportCommunityLedger() {
+            const w = window.open(api.reports.exportLedgerUrl(), "_blank");
+            if (!w) return alert("浏览器拦截了弹窗，请允许后重试");
         }
 
         document.getElementById("exportPdfBtn").addEventListener("click", exportPdfReport);
         document.getElementById("exportExcelBtn").addEventListener("click", exportExcelCsv);
+        document.getElementById("exportLedgerBtn")?.addEventListener("click", exportCommunityLedger);
         document.getElementById("refreshReportBtn").addEventListener("click", loadReportsRealtime);
         document.getElementById("reportPeriod").addEventListener("change", loadReportsRealtime);
 

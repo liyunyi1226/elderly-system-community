@@ -397,6 +397,22 @@
             gap: 10px;
             margin-bottom: 20px;
         }
+        .comm-form {
+            background: #f8faff;
+            border: 1px solid #e6ecff;
+            border-radius: 10px;
+            padding: 14px;
+        }
+        .comm-row {
+            display: grid;
+            grid-template-columns: 150px 220px 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .comm-row.compact {
+            grid-template-columns: 150px 180px auto;
+            align-items: center;
+        }
         .add-communication select,
         .add-communication input,
         .add-communication textarea {
@@ -409,6 +425,23 @@
             flex: 1;
             min-height: 80px;
             resize: vertical;
+        }
+        .comm-action {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .btn-comm {
+            flex: 0 0 auto !important;
+            min-width: 110px;
+            padding: 10px 16px;
+            font-size: 14px;
+        }
+        .comm-hint {
+            font-size: 12px;
+            color: #7a7a7a;
+            margin-top: 6px;
         }
         .next-follow-up {
             display: flex;
@@ -443,6 +476,16 @@
             .health-metrics {
                 grid-template-columns: 1fr;
             }
+            .comm-row,
+            .comm-row.compact {
+                grid-template-columns: 1fr;
+            }
+            .comm-action {
+                justify-content: stretch;
+            }
+            .btn-comm {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -459,7 +502,7 @@
                     <i class="fas fa-user"></i>
                 </div>
                 <div class="profile-info">
-                    <h2 id="elderName">张志强</h2>
+                    <h2 id="elderName">加载中...</h2>
                     <span class="status-badge status-critical" id="elderStatus">危重状态</span>
                 </div>
             </div>
@@ -519,30 +562,25 @@
                 <span class="ai-badge"><i class="fas fa-brain"></i> AI分析</span>
             </div>
             <div class="card-body">
-                <div class="risk-indicator high">
-                    <div class="risk-level">高</div>
+                <div class="risk-indicator high" id="aiRiskIndicator">
+                    <div class="risk-level" id="aiRiskLevel">-</div>
                     <div class="risk-info">
-                        <h5>当前风险等级：高风险</h5>
-                        <p>多项指标异常，需立即关注并采取干预措施</p>
+                        <h5 id="aiRiskTitle">当前风险等级：评估中</h5>
+                        <p id="aiRiskDesc">正在加载AI风险分析...</p>
                     </div>
                 </div>
 
                 <div class="ai-analysis">
                     <h5><i class="fas fa-exclamation-triangle"></i> 风险因素分析</h5>
-                    <ul>
-                        <li><strong>心率异常：</strong>当前心率145 bpm，超出正常范围(60-100)，可能存在心律失常风险</li>
-                        <li><strong>血压偏高：</strong>收缩压165 mmHg，舒张压95 mmHg，属于二级高血压</li>
-                        <li><strong>血氧偏低：</strong>血氧饱和度92%，低于正常值(95%以上)，需关注呼吸功能</li>
+                    <ul id="aiRiskReasons">
+                        <li>正在加载风险因素...</li>
                     </ul>
                 </div>
 
                 <div class="ai-analysis">
                     <h5><i class="fas fa-lightbulb"></i> AI照护建议</h5>
-                    <ul>
-                        <li><strong>紧急措施：</strong>建议立即安排医生上门检查，排除急性心脏事件</li>
-                        <li><strong>用药建议：</strong>建议在医生指导下调整降压药剂量</li>
-                        <li><strong>生活方式：</strong>保持情绪平稳，避免剧烈活动，低盐饮食</li>
-                        <li><strong>监测频率：</strong>建议增加心率、血压监测频率至每2小时一次</li>
+                    <ul id="aiCareSuggestions">
+                        <li>正在生成照护建议...</li>
                     </ul>
                 </div>
             </div>
@@ -575,30 +613,9 @@
                 </div>
                 <div class="card-body">
                     <table style="width: 100%; border-collapse: collapse;">
-                        <tr style="border-bottom: 1px solid #f0f0f0;">
-                            <td style="padding: 15px; color: #666;">2024-01-15 14:28</td>
-                            <td style="padding: 15px; color: #ff4757; font-weight: 600;">心率异常警报</td>
-                            <td style="padding: 15px; color: #666;">心率飙升至 145 bpm</td>
-                            <td style="padding: 15px;"><span class="ai-badge"><i class="fas fa-robot"></i> AI已响应</span></td>
-                        </tr>
-                        <tr style="border-bottom: 1px solid #f0f0f0;">
-                            <td style="padding: 15px; color: #666;">2024-01-15 08:00</td>
-                            <td style="padding: 15px; color: #4CAF50;">正常服药</td>
-                            <td style="padding: 15px; color: #666;">降压药已服用</td>
-                            <td style="padding: 15px;"><span class="ai-badge"><i class="fas fa-robot"></i> AI提醒</span></td>
-                        </tr>
-                        <tr style="border-bottom: 1px solid #f0f0f0;">
-                            <td style="padding: 15px; color: #666;">2024-01-14 20:15</td>
-                            <td style="padding: 15px; color: #ffa502;">血压偏高</td>
-                            <td style="padding: 15px; color: #666;">血压 152/92 mmHg</td>
-                            <td style="padding: 15px;"><span class="ai-badge"><i class="fas fa-robot"></i> AI记录</span></td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 15px; color: #666;">2024-01-14 10:00</td>
-                            <td style="padding: 15px; color: #4CAF50;">定期检查</td>
-                            <td style="padding: 15px; color: #666;">社区医生上门检查</td>
-                            <td style="padding: 15px;"><span class="ai-badge"><i class="fas fa-robot"></i> AI预约</span></td>
-                        </tr>
+                        <tbody id="healthRecordTbody">
+                            <tr><td colspan="4" style="padding:15px;color:#666;text-align:center;">正在加载健康记录...</td></tr>
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -610,32 +627,32 @@
                     <h4><i class="fas fa-plus-circle"></i> 新增沟通记录</h4>
                 </div>
                 <div class="card-body">
-                    <div class="add-communication" style="flex-direction: column;">
-                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                            <select style="width: 150px;">
+                    <div class="add-communication comm-form" style="flex-direction: column;">
+                        <div class="comm-row">
+                            <select id="commType">
                                 <option>电话沟通</option>
                                 <option>微信沟通</option>
                                 <option>上门沟通</option>
                                 <option>视频通话</option>
                             </select>
-                            <select style="width: 200px;">
-                                <option>儿子 张明</option>
-                                <option>女儿 张丽</option>
-                                <option>其他家属</option>
+                            <select id="commContact">
+                                <option value="">请选择联系人</option>
                             </select>
-                            <input type="datetime-local" style="width: 200px;">
+                            <input id="commAt" type="datetime-local">
                         </div>
-                        <textarea placeholder="请输入沟通内容..."></textarea>
-                        <div style="display: flex; gap: 10px; margin-top: 10px; align-items: center;">
-                            <select style="width: 150px;">
-                                <option>沟通结果</option>
+                        <textarea id="commContent" placeholder="请输入沟通内容..."></textarea>
+                        <div class="comm-row compact">
+                            <select id="commResult">
                                 <option>已解决</option>
                                 <option>待跟进</option>
                                 <option>需转介</option>
                             </select>
-                            <input type="date" style="width: 180px;" placeholder="下次随访时间">
-                            <button class="btn btn-primary" style="padding: 10px 20px;">保存记录</button>
+                            <input id="commNextFollowUp" type="date" placeholder="下次随访时间">
+                            <div class="comm-action">
+                                <button id="saveCommunicationBtn" class="btn btn-primary btn-comm">保存记录</button>
+                            </div>
                         </div>
+                        <p class="comm-hint">提示：沟通对象来源于“添加老人”时维护的联系人信息。</p>
                     </div>
                 </div>
             </div>
@@ -645,91 +662,17 @@
                     <h4><i class="fas fa-history"></i> 沟通记录历史</h4>
                 </div>
                 <div class="card-body">
-                    <div class="communication-list">
-                        <div class="communication-item outbound">
-                            <div class="communication-icon">
-                                <i class="fas fa-phone-alt"></i>
-                            </div>
-                            <div class="communication-content">
-                                <div class="communication-header">
-                                    <h5>电话沟通 · 儿子 张明</h5>
-                                    <span class="time">2024-01-15 14:35</span>
-                                </div>
-                                <div class="communication-body">
-                                    通知家属老人心率异常情况，已安排王强军上门检查。家属表示正在赶往社区，预计30分钟到达。
-                                </div>
-                                <div class="communication-result">
-                                    <strong>沟通结果：</strong>家属已知悉，正在赶来<br>
-                                    <strong>下次随访：</strong>2024-01-16 上午
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="communication-item inbound">
-                            <div class="communication-icon">
-                                <i class="fas fa-comment-dots"></i>
-                            </div>
-                            <div class="communication-content">
-                                <div class="communication-header">
-                                    <h5>微信咨询 · 女儿 张丽</h5>
-                                    <span class="time">2024-01-14 16:20</span>
-                                </div>
-                                <div class="communication-body">
-                                    家属询问父亲近期血压控制情况，建议调整降压药剂量。已告知家属近期血压波动情况，建议带老人到医院做进一步检查。
-                                </div>
-                                <div class="communication-result">
-                                    <strong>沟通结果：</strong>已解答，家属计划周末带老人就医<br>
-                                    <strong>下次随访：</strong>2024-01-18
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="communication-item outbound">
-                            <div class="communication-icon">
-                                <i class="fas fa-home"></i>
-                            </div>
-                            <div class="communication-content">
-                                <div class="communication-header">
-                                    <h5>上门沟通 · 儿子 张明</h5>
-                                    <span class="time">2024-01-12 10:00</span>
-                                </div>
-                                <div class="communication-body">
-                                    家属到社区服务中心了解老人近期健康状况。详细介绍了老人的心率、血压监测数据，以及AI健康风险评估结果。讨论了老人用药调整方案。
-                                </div>
-                                <div class="communication-result">
-                                    <strong>沟通结果：</strong>家属满意，已了解情况<br>
-                                    <strong>下次随访：</strong>2024-01-15
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="communication-item outbound">
-                            <div class="communication-icon">
-                                <i class="fas fa-video"></i>
-                            </div>
-                            <div class="communication-content">
-                                <div class="communication-header">
-                                    <h5>视频通话 · 女儿 张丽</h5>
-                                    <span class="time">2024-01-10 15:30</span>
-                                </div>
-                                <div class="communication-body">
-                                    远程视频沟通老人日常照护问题。家属在外地工作，通过视频了解父亲生活状况。建议安装更多智能监测设备，并增加巡访频率。
-                                </div>
-                                <div class="communication-result">
-                                    <strong>沟通结果：</strong>已采纳建议，增加巡访<br>
-                                    <strong>下次随访：</strong>2024-01-12
-                                </div>
-                            </div>
-                        </div>
+                    <div class="communication-list" id="communicationListContainer">
+                        <div style="text-align:center;color:#666;padding:24px;">正在加载沟通记录...</div>
                     </div>
 
-                    <div class="next-follow-up">
+                    <div class="next-follow-up" id="nextFollowUpBox">
                         <i class="fas fa-calendar-alt"></i>
                         <div class="info">
                             <h5>下次计划随访时间</h5>
-                            <p>2024年1月16日 上午 10:00 · 计划方式：电话沟通</p>
+                            <p>待评估</p>
                         </div>
-                        <button class="btn btn-primary" style="padding: 8px 16px; font-size: 13px;">
+                        <button id="editNextFollowUpBtn" class="btn btn-primary btn-comm" style="padding: 8px 16px; font-size: 13px; min-width: 86px;">
                             <i class="fas fa-edit"></i> 修改
                         </button>
                     </div>
@@ -756,6 +699,9 @@
         if (!requirePagePermission('elderly-detail')) {
             document.body.innerHTML = '<div style="text-align: center; padding: 100px; font-size: 18px; color: #666;">无访问权限，正在返回首页...</div>';
         }
+        let currentElderlyId = null;
+        let currentContacts = [];
+        let heartRateChartInstance = null;
 
         function parseIdFromQuery() {
             const params = new URLSearchParams(window.location.search);
@@ -833,6 +779,215 @@
             else setMetricStyle(bloodOxygenEl, bloodOxygenStatusEl, "normal", "血氧正常");
         }
 
+        function renderContactOptions(detail) {
+            const select = document.getElementById("commContact");
+            if (!select) return;
+            currentContacts = Array.isArray(detail?.contacts) ? detail.contacts : [];
+            select.innerHTML = '<option value="">请选择联系人</option>';
+            currentContacts.forEach((c) => {
+                const label = `${c.relation || "家属"} ${c.name || ""}`.trim();
+                select.innerHTML += `<option value="${c.id || ""}" data-name="${c.name || ""}" data-phone="${c.phone || ""}">${label}${c.phone ? ` (${c.phone})` : ""}</option>`;
+            });
+        }
+
+        async function submitCommunication() {
+            if (!currentElderlyId) return;
+            const type = document.getElementById("commType")?.value || "电话沟通";
+            const contactSelect = document.getElementById("commContact");
+            const selectedId = contactSelect?.value || "";
+            const selectedOption = contactSelect?.selectedOptions?.[0];
+            const content = (document.getElementById("commContent")?.value || "").trim();
+            const result = document.getElementById("commResult")?.value || "待跟进";
+            const nextFollowUp = document.getElementById("commNextFollowUp")?.value || "";
+            const commAt = document.getElementById("commAt")?.value || "";
+            if (!selectedId && !selectedOption?.dataset?.name) {
+                alert("请先选择沟通联系人");
+                return;
+            }
+            if (!content) {
+                alert("请输入沟通内容");
+                return;
+            }
+            try {
+                const payload = {
+                    communication_type: type,
+                    content,
+                    result,
+                    next_follow_up: nextFollowUp,
+                    communicated_at: commAt
+                };
+                if (selectedId) {
+                    payload.contact_id = Number(selectedId);
+                } else {
+                    payload.contact_name = selectedOption?.dataset?.name || "";
+                    payload.contact_phone = selectedOption?.dataset?.phone || "";
+                }
+                const res = await api.elderly.createCommunication(currentElderlyId, payload);
+                if (!res.success) throw new Error(res.message || "保存失败");
+                document.getElementById("commContent").value = "";
+                alert("沟通记录保存成功");
+                await loadElderlyDetail();
+                switchTab("communication");
+            } catch (error) {
+                alert("沟通记录保存失败：" + error.message);
+            }
+        }
+
+        function fmtDateTime(v) {
+            if (!v) return "-";
+            const t = String(v).replace(" ", "T");
+            const d = new Date(t);
+            if (Number.isNaN(d.getTime())) return String(v);
+            return d.toLocaleString("zh-CN", { hour12: false });
+        }
+
+        function renderHealthRecords(detail) {
+            const tbody = document.getElementById("healthRecordTbody");
+            if (!tbody) return;
+            const list = detail?.healthData || [];
+            if (!list.length) {
+                tbody.innerHTML = '<tr><td colspan="4" style="padding:15px;color:#666;text-align:center;">暂无健康记录</td></tr>';
+                return;
+            }
+            tbody.innerHTML = list.slice(0, 10).map((x) => {
+                const hr = Number(x.heart_rate || 0);
+                const bh = Number(x.blood_pressure_high || 0);
+                const bl = Number(x.blood_pressure_low || 0);
+                const bo = Number(x.blood_oxygen || 0);
+                let levelText = "常规记录";
+                let levelColor = "#4CAF50";
+                let desc = `心率 ${hr || '--'} bpm，血压 ${bh || '--'}/${bl || '--'} mmHg，血氧 ${bo || '--'}%`;
+                if (hr >= 120 || bh >= 160 || (bo && bo < 94)) {
+                    levelText = "高风险告警";
+                    levelColor = "#ff4757";
+                } else if (hr >= 100 || bh >= 140 || (bo && bo < 96)) {
+                    levelText = "需要关注";
+                    levelColor = "#ffa502";
+                }
+                return `
+                    <tr style="border-bottom: 1px solid #f0f0f0;">
+                        <td style="padding: 15px; color: #666;">${fmtDateTime(x.recorded_at || x.created_at)}</td>
+                        <td style="padding: 15px; color: ${levelColor}; font-weight: 600;">${levelText}</td>
+                        <td style="padding: 15px; color: #666;">${desc}</td>
+                        <td style="padding: 15px;"><span class="ai-badge"><i class="fas fa-robot"></i> AI分析</span></td>
+                    </tr>
+                `;
+            }).join("");
+        }
+
+        function renderCommunications(detail) {
+            const container = document.getElementById("communicationListContainer");
+            const followUpBox = document.getElementById("nextFollowUpBox");
+            if (!container) return;
+            const list = detail?.communications || [];
+            if (!list.length) {
+                container.innerHTML = '<div style="text-align:center;color:#666;padding:24px;">暂无家属沟通记录</div>';
+                if (followUpBox) followUpBox.querySelector(".info p").textContent = "暂无计划随访时间";
+                return;
+            }
+
+            container.innerHTML = list.slice(0, 10).map((c) => {
+                const type = c.communication_type || "电话";
+                const icon = type.includes("视频") ? "fa-video" : (type.includes("微信") ? "fa-comment-dots" : (type.includes("上门") ? "fa-home" : "fa-phone-alt"));
+                const outbound = type.includes("咨询") ? "inbound" : "outbound";
+                return `
+                    <div class="communication-item ${outbound}">
+                        <div class="communication-icon"><i class="fas ${icon}"></i></div>
+                        <div class="communication-content">
+                            <div class="communication-header">
+                                <h5>${type} · ${c.contact_name || "家属"}</h5>
+                                <span class="time">${fmtDateTime(c.created_at)}</span>
+                            </div>
+                            <div class="communication-body">${c.content || "无沟通内容"}</div>
+                            <div class="communication-result">
+                                <strong>沟通结果：</strong>${c.result || "待跟进"}<br>
+                                <strong>下次随访：</strong>${c.next_follow_up || "未设置"}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join("");
+            if (followUpBox) {
+                const next = list.find((x) => x.next_follow_up);
+                followUpBox.querySelector(".info p").textContent = next ? `${next.next_follow_up} · 计划方式：${next.communication_type || '电话沟通'}` : "暂无计划随访时间";
+            }
+        }
+
+        function renderAiRisk(detail, aiRisk, aiDiag) {
+            const indicator = document.getElementById("aiRiskIndicator");
+            const levelEl = document.getElementById("aiRiskLevel");
+            const titleEl = document.getElementById("aiRiskTitle");
+            const descEl = document.getElementById("aiRiskDesc");
+            const reasonsEl = document.getElementById("aiRiskReasons");
+            const suggestEl = document.getElementById("aiCareSuggestions");
+            const risk = aiDiag?.risk || aiRisk?.levelText || "中风险";
+            const riskClass = risk.includes("高") ? "high" : (risk.includes("低") ? "low" : "medium");
+            if (indicator) {
+                indicator.classList.remove("high", "medium", "low");
+                indicator.classList.add(riskClass);
+            }
+            if (levelEl) levelEl.textContent = risk.includes("高") ? "高" : (risk.includes("低") ? "低" : "中");
+            if (titleEl) titleEl.textContent = `当前风险等级：${risk}`;
+            if (descEl) descEl.textContent = aiDiag?.summary || aiRisk?.analysis || "暂无分析";
+            if (reasonsEl) {
+                const reasons = (aiRisk?.reasons || []).slice(0, 4);
+                reasonsEl.innerHTML = reasons.length
+                    ? reasons.map((r) => `<li>${r}</li>`).join("")
+                    : "<li>暂无显著风险因素</li>";
+            }
+            if (suggestEl) {
+                const suggestions = (aiDiag?.suggestions || []).slice(0, 5);
+                suggestEl.innerHTML = suggestions.length
+                    ? suggestions.map((s) => `<li>${s}</li>`).join("")
+                    : "<li>建议持续观察并按计划复诊</li>";
+            }
+        }
+
+        function renderHeartRateChartFromDetail(detail) {
+            const ctxEl = document.getElementById('heartRateChart');
+            if (!ctxEl) return;
+            const ctx = ctxEl.getContext('2d');
+            if (heartRateChartInstance) {
+                heartRateChartInstance.destroy();
+            }
+            const healthData = detail?.healthData || [];
+            const latest24 = healthData.slice(0, 24).reverse();
+            const labels = latest24.length
+                ? latest24.map((x) => {
+                    const t = String(x.recorded_at || x.created_at || "");
+                    const hm = t.split(" ")[1] || "";
+                    return hm ? hm.slice(0, 5) : "--:--";
+                })
+                : Array.from({length: 24}, (_, i) => `${i}:00`);
+            const values = latest24.length
+                ? latest24.map((x) => Number(x.heart_rate || 0))
+                : [72, 70, 68, 65, 67, 70, 75, 80, 85, 88, 90, 92, 95, 98, 102, 108, 115, 120, 125, 130, 135, 140, 142, 145];
+
+            heartRateChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: '心率 (bpm)',
+                        data: values,
+                        borderColor: '#ff4757',
+                        backgroundColor: 'rgba(255, 71, 87, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { min: 50, max: 160, grid: { color: '#f0f0f0' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
         async function loadElderlyDetail() {
             const id = parseIdFromQuery();
             if (!id) {
@@ -840,6 +995,7 @@
                 window.location.href = "elderly-list.html";
                 return;
             }
+            currentElderlyId = id;
             try {
                 const res = await api.elderly.getById(id);
                 if (!res.success || !res.data) {
@@ -848,6 +1004,33 @@
                     return;
                 }
                 fillElderlyInfo(res.data);
+                renderContactOptions(res.data);
+                renderHealthRecords(res.data);
+                renderCommunications(res.data);
+                const commAtInput = document.getElementById("commAt");
+                if (commAtInput && !commAtInput.value) {
+                    const now = new Date();
+                    const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+                    commAtInput.value = local;
+                }
+                try {
+                    const aiRiskRes = await api.ai.getRisk({ elderly_id: id });
+                    const aiRisk = (aiRiskRes?.data?.list || [])[0] || null;
+                    const symptoms = [];
+                    const latest = (res.data.healthData || [])[0] || {};
+                    if (Number(latest.heart_rate || 0) >= 100) symptoms.push("心率异常");
+                    if (Number(latest.blood_pressure_high || 0) >= 140) symptoms.push("血压偏高");
+                    if (Number(latest.blood_oxygen || 0) > 0 && Number(latest.blood_oxygen || 0) < 95) symptoms.push("血氧偏低");
+                    const aiDiagRes = await api.ai.getDiagnosis({
+                        elderly_id: id,
+                        symptoms,
+                        narrative: "老年人详情页自动触发评估"
+                    });
+                    renderAiRisk(res.data, aiRisk, aiDiagRes?.data || null);
+                } catch (_) {
+                    renderAiRisk(res.data, null, null);
+                }
+                renderHeartRateChartFromDetail(res.data);
             } catch (error) {
                 alert("加载老人详情失败：" + error.message);
             }
@@ -855,43 +1038,13 @@
 
         if (hasPermission('elderly-detail')) {
         loadElderlyDetail();
-        const ctx = document.getElementById('heartRateChart').getContext('2d');
-        const hours = Array.from({length: 24}, (_, i) => `${i}:00`);
-        const heartRates = [72, 70, 68, 65, 67, 70, 75, 80, 85, 88, 90, 92, 95, 98, 102, 108, 115, 120, 125, 130, 135, 140, 142, 145];
-        
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: hours,
-                datasets: [{
-                    label: '心率 (bpm)',
-                    data: heartRates,
-                    borderColor: '#ff4757',
-                    backgroundColor: 'rgba(255, 71, 87, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    y: {
-                        min: 50,
-                        max: 160,
-                        grid: { color: '#f0f0f0' }
-                    },
-                    x: {
-                        grid: { display: false }
-                    }
-                }
-            }
-        });
-
         }
+
+        document.getElementById("saveCommunicationBtn")?.addEventListener("click", submitCommunication);
+        document.getElementById("editNextFollowUpBtn")?.addEventListener("click", () => {
+            switchTab("communication");
+            document.getElementById("commNextFollowUp")?.focus();
+        });
 
         function switchTab(tabName) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));

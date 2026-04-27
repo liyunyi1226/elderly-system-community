@@ -1,4 +1,4 @@
-const API_BASE = "/api";
+const API_BASE = import.meta.env.VITE_API_BASE || "/api";
 
 async function request(url, options = {}) {
   const defaultOptions = {
@@ -51,6 +51,15 @@ export const api = {
     },
     remove(id) {
       return request(`/elderly/${id}`, { method: "DELETE" });
+    },
+    contacts(id) {
+      return request(`/elderly/${id}/contacts`);
+    },
+    addContact(id, payload) {
+      return request(`/elderly/${id}/contacts`, { method: "POST", body: JSON.stringify(payload) });
+    },
+    createCommunication(id, payload) {
+      return request(`/elderly/${id}/communications`, { method: "POST", body: JSON.stringify(payload) });
     }
   },
   doctors: {
@@ -91,6 +100,9 @@ export const api = {
     updateStatus(id, payload) {
       return request(`/devices/${id}/status`, { method: "PUT", body: JSON.stringify(payload) });
     },
+    telemetry(id, payload) {
+      return request(`/devices/${id}/telemetry`, { method: "POST", body: JSON.stringify(payload) });
+    },
     remove(id) {
       return request(`/devices/${id}`, { method: "DELETE" });
     }
@@ -110,6 +122,12 @@ export const api = {
         method: "PUT",
         body: JSON.stringify({ handle_result })
       });
+    },
+    workflow(id, payload) {
+      return request(`/alerts/${id}/workflow`, { method: "PUT", body: JSON.stringify(payload) });
+    },
+    triage(payload) {
+      return request("/alerts/triage", { method: "POST", body: JSON.stringify(payload) });
     }
   },
   orders: {
@@ -135,6 +153,34 @@ export const api = {
     },
     complete(id, payload) {
       return request(`/visits/${id}/complete`, { method: "PUT", body: JSON.stringify(payload) });
+    }
+  },
+  reports: {
+    overview(days = 30) {
+      return request(`/reports/overview?days=${encodeURIComponent(days)}`);
+    },
+    exportLedgerUrl(grid = "") {
+      const base = `/reports/export/ledger`;
+      return grid ? `${base}?grid=${encodeURIComponent(grid)}` : base;
+    }
+  },
+  notifications: {
+    list(eventId) {
+      const q = eventId ? `?event_id=${encodeURIComponent(eventId)}` : "";
+      return request(`/notifications/list${q}`);
+    }
+  },
+  events: {
+    trace(eventId) {
+      return request(`/events/trace?event_id=${encodeURIComponent(eventId)}`);
+    }
+  },
+  ai: {
+    risk(payload = {}) {
+      return request("/ai/risk", { method: "POST", body: JSON.stringify(payload) });
+    },
+    diagnosis(payload) {
+      return request("/ai/diagnosis", { method: "POST", body: JSON.stringify(payload) });
     }
   }
 };

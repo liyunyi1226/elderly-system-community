@@ -476,7 +476,8 @@
             selectedId: null,
             alerts: [],
             stats: null,
-            prevMetrics: null
+            prevMetrics: null,
+            aiMap: {}
         };
         const RISK_TREND_SNAPSHOT_KEY = 'aiRiskTrendSnapshot';
 
@@ -519,6 +520,8 @@
         }
 
         function buildAnalysis(item) {
+            const aiAnalysis = riskState.aiMap[item.id]?.analysis;
+            if (aiAnalysis) return aiAnalysis;
             const reasons = [];
             if (item.activeAlerts >= 2) reasons.push(`存在${item.activeAlerts}条未处理告警`);
             if (item.healthStatus === '危重状态') reasons.push('健康状态为危重状态');
@@ -673,13 +676,20 @@
 
         async function loadRiskData() {
             try {
-                const [elderlyRes, alertsRes, statsRes] = await Promise.all([
+                const [elderlyRes, alertsRes, statsRes, aiRiskRes] = await Promise.all([
                     api.elderly.getList({ pageSize: 200 }),
                     api.alerts.getList({ pageSize: 500 }),
-                    api.alerts.getStatistics()
+                    api.alerts.getStatistics(),
+                    api.ai.getRisk({})
                 ]);
                 const elderlyList = elderlyRes?.data?.list || [];
                 const alerts = alertsRes?.data?.list || [];
+                const aiList = aiRiskRes?.data?.list || [];
+                const aiMap = {};
+                aiList.forEach((x) => {
+                    aiMap[Number(x.id)] = x;
+                });
+                riskState.aiMap = aiMap;
                 riskState.alerts = alerts;
                 riskState.stats = statsRes?.data || null;
                 const alertMap = {};
@@ -696,7 +706,7 @@
                         ...e,
                         totalAlerts: agg.total,
                         activeAlerts: agg.active,
-                        level: mapRiskFromElderly(e, agg.active),
+                        level: aiMap[e.id]?.level || mapRiskFromElderly(e, agg.active),
                         healthStatus: e.health_status || ''
                     };
                 }).sort((a, b) => {

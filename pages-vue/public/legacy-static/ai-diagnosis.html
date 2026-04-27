@@ -772,16 +772,33 @@
 
             const suggestion = document.querySelector('.suggestion-card ul');
             if (suggestion) {
-                suggestion.innerHTML = `
-                    <li>现场复测血压、心率、血氧并记录</li>
-                    <li>按${result.risk}等级执行社区响应SOP</li>
-                    <li>通知家属同步当前观察结果</li>
-                    <li>必要时安排转诊至上级医院</li>
-                `;
+                const list = Array.isArray(result.suggestions) && result.suggestions.length
+                    ? result.suggestions
+                    : [
+                        '现场复测血压、心率、血氧并记录',
+                        `按${result.risk}等级执行社区响应SOP`,
+                        '通知家属同步当前观察结果',
+                        '必要时安排转诊至上级医院'
+                    ];
+                suggestion.innerHTML = list.map((x) => `<li>${x}</li>`).join('');
             }
             const warningP = document.querySelector('.warning-card p');
             if (warningP) {
-                warningP.textContent = `AI提示：本次分析基于实时数据与症状标签自动生成，请医生结合面诊结果最终判定。`;
+                warningP.textContent = `AI提示：${result.referral || '本次分析基于实时数据与症状标签自动生成，请医生结合面诊结果最终判定。'}`;
+            }
+            const recCards = document.querySelectorAll('.main-grid > div:nth-child(2) .card .suggestion-card');
+            if (recCards.length >= 2) {
+                const doctor = result.recommendedDoctor;
+                const docTitle = recCards[0].querySelector('p strong');
+                const docDesc = recCards[0].querySelector('p:last-child');
+                if (doctor) {
+                    if (docTitle) docTitle.textContent = `${doctor.name}（${doctor.specialization || '全科'}）`;
+                    if (docDesc) docDesc.textContent = `推荐理由：在线且评分较高（${doctor.rating || '--'}）`;
+                }
+                const refTitle = recCards[1].querySelector('p strong');
+                const refDesc = recCards[1].querySelector('p:last-child');
+                if (refTitle) refTitle.textContent = result.referral || '暂不建议转诊';
+                if (refDesc) refDesc.textContent = '建议仍需结合现场体征与医生评估综合判断。';
             }
         }
 
@@ -790,11 +807,24 @@
             if (!elderly) return alert('请先选择诊断对象');
             const btn = document.querySelector('.analyze-btn');
             if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 分析中...';
-            await new Promise((r) => setTimeout(r, 700));
-            const result = genDiagnosis(elderly);
-            diagState.lastDiagnosis = result;
-            renderDiagnosisResult(result);
-            if (btn) btn.innerHTML = '<i class="fas fa-brain"></i> AI智能分析';
+            try {
+                const textarea = document.querySelector('.input-section textarea');
+                const res = await api.ai.getDiagnosis({
+                    elderly_id: elderly.id,
+                    symptoms: Array.from(diagState.selectedSymptoms),
+                    narrative: textarea ? textarea.value : ''
+                });
+                const result = res?.data || genDiagnosis(elderly);
+                diagState.lastDiagnosis = result;
+                renderDiagnosisResult(result);
+            } catch (e) {
+                const fallback = genDiagnosis(elderly);
+                diagState.lastDiagnosis = fallback;
+                renderDiagnosisResult(fallback);
+                alert('AI后端分析失败，已切换本地规则分析：' + e.message);
+            } finally {
+                if (btn) btn.innerHTML = '<i class="fas fa-brain"></i> AI智能分析';
+            }
         }
 
         window.analyzeData = analyzeData;

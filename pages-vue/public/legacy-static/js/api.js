@@ -83,6 +83,18 @@ const api = {
 
         async delete(id) {
             return api.delete('/elderly/' + id);
+        },
+
+        async getContacts(id) {
+            return api.get('/elderly/' + id + '/contacts');
+        },
+
+        async addContact(id, data) {
+            return api.post('/elderly/' + id + '/contacts', data);
+        },
+
+        async createCommunication(id, data) {
+            return api.post('/elderly/' + id + '/communications', data);
         }
     },
 
@@ -98,6 +110,14 @@ const api = {
 
         async handle(id, result) {
             return api.put('/alerts/' + id + '/handle', { handle_result: result });
+        },
+
+        async workflow(id, payload) {
+            return api.put('/alerts/' + id + '/workflow', payload);
+        },
+
+        async triage(data) {
+            return api.post('/alerts/triage', data);
         },
 
         async create(data) {
@@ -136,6 +156,10 @@ const api = {
 
         async getStatistics() {
             return api.get('/devices/statistics');
+        },
+
+        async uploadTelemetry(id, data) {
+            return api.post('/devices/' + id + '/telemetry', data);
         }
     },
 
@@ -175,6 +199,35 @@ const api = {
         }
     },
 
+    reports: {
+        async getOverview(days = 30) {
+            return api.get('/reports/overview?days=' + days);
+        },
+        exportCsvUrl(days = 30) {
+            return API_BASE + '/reports/export/csv?days=' + encodeURIComponent(days);
+        },
+        exportPrintUrl(days = 30) {
+            return API_BASE + '/reports/export/print?days=' + encodeURIComponent(days);
+        },
+        exportLedgerUrl(grid = '') {
+            const base = API_BASE + '/reports/export/ledger';
+            return grid ? base + '?grid=' + encodeURIComponent(grid) : base;
+        }
+    },
+
+    notifications: {
+        async getList(eventId) {
+            const q = eventId ? '?event_id=' + encodeURIComponent(eventId) : '';
+            return api.get('/notifications/list' + q);
+        }
+    },
+
+    events: {
+        async getTrace(eventId) {
+            return api.get('/events/trace?event_id=' + encodeURIComponent(eventId));
+        }
+    },
+
     settings: {
         async getCurrent() {
             return api.get('/settings/current');
@@ -182,6 +235,15 @@ const api = {
 
         async updateCurrent(data) {
             return api.put('/settings/current', data);
+        }
+    },
+
+    ai: {
+        async getRisk(payload = {}) {
+            return api.post('/ai/risk', payload);
+        },
+        async getDiagnosis(payload) {
+            return api.post('/ai/diagnosis', payload);
         }
     }
 };

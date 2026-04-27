@@ -131,6 +131,15 @@
             border-radius: 8px;
             font-size: 13px;
         }
+        .form-row textarea {
+            width: 100%;
+            min-height: 70px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 13px;
+            resize: vertical;
+        }
         .card {
             background: white;
             border-radius: 12px;
@@ -495,8 +504,22 @@
                         <input id="addBirthDate" type="date">
                     </div>
                     <div>
+                        <label>身份证号</label>
+                        <input id="addIdCard" type="text" placeholder="18位身份证号（可选）">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div>
                         <label>联系电话</label>
                         <input id="addPhone" type="text" placeholder="11位手机号">
+                    </div>
+                    <div>
+                        <label>风险等级</label>
+                        <select id="addRiskLevel">
+                            <option value="低风险">低风险</option>
+                            <option value="中风险">中风险</option>
+                            <option value="高风险">高风险</option>
+                        </select>
                     </div>
                 </div>
                 <div class="form-row">
@@ -515,12 +538,45 @@
                 </div>
                 <div class="form-row">
                     <div>
+                        <label>片区/网格</label>
+                        <input id="addGridArea" type="text" placeholder="例如：阳光社区 · 第三网格">
+                    </div>
+                    <div>
+                        <label>重点标签</label>
+                        <input id="addFocusTags" type="text" placeholder="如：独居、失能、慢病高危（逗号分隔）">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div>
                         <label>紧急联系人</label>
                         <input id="addEmergencyContact" type="text" placeholder="联系人姓名">
                     </div>
                     <div>
                         <label>紧急联系电话</label>
                         <input id="addEmergencyPhone" type="text" placeholder="联系电话">
+                    </div>
+                </div>
+                <div class="form-row" style="grid-template-columns: 1fr;">
+                    <div>
+                        <label>家属/联系人（可多个）</label>
+                        <div id="contactRows" style="display:grid;gap:8px;"></div>
+                        <button type="button" class="btn btn-sm" style="margin-top:8px;background:#eef3ff;color:#1e3c72;" onclick="addContactRow()">+ 添加联系人</button>
+                    </div>
+                </div>
+                <div class="form-row" style="grid-template-columns: 1fr;">
+                    <div>
+                        <label>既往病史 / 慢病情况</label>
+                        <textarea id="addChronicDiseases" placeholder="例如：高血压、糖尿病、冠心病"></textarea>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div>
+                        <label>过敏史</label>
+                        <textarea id="addAllergies" placeholder="例如：青霉素过敏；无则填写“无”"></textarea>
+                    </div>
+                    <div>
+                        <label>长期用药</label>
+                        <textarea id="addMedications" placeholder="例如：缬沙坦 80mg qd"></textarea>
                     </div>
                 </div>
             </div>
@@ -827,43 +883,101 @@
 
         function showAddElderlyModal() {
             document.getElementById("addElderlyModal").classList.add("show");
+            if (!document.getElementById("contactRows")?.children?.length) {
+                addContactRow("紧急联系人", "", "");
+            }
         }
 
         function hideAddElderlyModal() {
             document.getElementById("addElderlyModal").classList.remove("show");
         }
 
+        function addContactRow(relation = "家属", name = "", phone = "") {
+            const container = document.getElementById("contactRows");
+            if (!container) return;
+            const row = document.createElement("div");
+            row.className = "contact-row";
+            row.style.display = "grid";
+            row.style.gridTemplateColumns = "1fr 1fr 1fr auto";
+            row.style.gap = "8px";
+            row.innerHTML = `
+                <select class="contact-relation" style="padding:10px;border:1px solid #ddd;border-radius:8px;">
+                    <option value="家属">家属</option>
+                    <option value="配偶">配偶</option>
+                    <option value="儿子">儿子</option>
+                    <option value="女儿">女儿</option>
+                    <option value="亲属">亲属</option>
+                    <option value="邻居">邻居</option>
+                    <option value="监护人">监护人</option>
+                    <option value="其他">其他</option>
+                </select>
+                <input class="contact-name" type="text" placeholder="联系人姓名" value="${name || ""}" style="padding:10px;border:1px solid #ddd;border-radius:8px;" />
+                <input class="contact-phone" type="text" placeholder="联系电话" value="${phone || ""}" style="padding:10px;border:1px solid #ddd;border-radius:8px;" />
+                <button type="button" class="btn btn-sm" style="background:#ffecec;color:#d33;" onclick="this.parentElement.remove()">删除</button>
+            `;
+            container.appendChild(row);
+            row.querySelector(".contact-relation").value = relation || "家属";
+        }
+
+        function collectContacts() {
+            return Array.from(document.querySelectorAll("#contactRows .contact-row"))
+                .map((row) => ({
+                    relation: row.querySelector(".contact-relation")?.value || "家属",
+                    name: row.querySelector(".contact-name")?.value?.trim() || "",
+                    phone: row.querySelector(".contact-phone")?.value?.trim() || "",
+                }))
+                .filter((c) => c.name);
+        }
+
         async function submitAddElderly() {
             const name = document.getElementById("addName").value.trim();
             const gender = document.getElementById("addGender").value;
             const birth_date = document.getElementById("addBirthDate").value;
+            const id_card = document.getElementById("addIdCard").value.trim();
             const phone = document.getElementById("addPhone").value.trim();
             const address = document.getElementById("addAddress").value.trim();
             const health_status = document.getElementById("addHealthStatus").value;
+            const risk_level = document.getElementById("addRiskLevel").value;
             const emergency_contact = document.getElementById("addEmergencyContact").value.trim();
             const emergency_phone = document.getElementById("addEmergencyPhone").value.trim();
+            const chronic_diseases = document.getElementById("addChronicDiseases").value.trim();
+            const allergies = document.getElementById("addAllergies").value.trim();
+            const medications = document.getElementById("addMedications").value.trim();
+            const grid_area = document.getElementById("addGridArea")?.value.trim() || "";
+            const focus_tags = document.getElementById("addFocusTags")?.value.trim() || "";
+            const contacts = collectContacts();
 
             if (!name) return alert("请输入姓名");
             if (!birth_date) return alert("请选择出生日期");
+            if (id_card && !/^\d{17}[\dXx]$/.test(id_card)) return alert("身份证号格式不正确");
             if (!phone || !/^1\\d{10}$/.test(phone)) return alert("请输入有效11位手机号");
             if (!address) return alert("请输入地址");
             if (!emergency_contact) return alert("请输入紧急联系人");
             if (!emergency_phone) return alert("请输入紧急联系电话");
+            if (!contacts.length) return alert("请至少添加1位家属/联系人");
+            for (const c of contacts) {
+                if (c.phone && !/^1\d{10}$/.test(c.phone)) return alert(`联系人手机号格式错误：${c.name}`);
+            }
+            const primaryContact = contacts[0];
 
             try {
                 const res = await api.elderly.create({
                     name,
                     gender,
                     birth_date,
+                    id_card,
                     phone,
                     address,
-                    emergency_contact,
-                    emergency_phone,
+                    emergency_contact: emergency_contact || primaryContact.name,
+                    emergency_phone: emergency_phone || primaryContact.phone,
                     health_status,
-                    risk_level: health_status === "危重状态" ? "高风险" : (health_status === "需要关注" ? "中风险" : "低风险"),
-                    chronic_diseases: "",
-                    allergies: "",
-                    medications: ""
+                    risk_level,
+                    chronic_diseases,
+                    allergies,
+                    medications,
+                    grid_area,
+                    focus_tags,
+                    contacts
                 });
                 if (res.success) {
                     alert("添加成功");
