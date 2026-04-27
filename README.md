@@ -136,3 +136,71 @@ oldsystem-main/
 - **后端启动失败**：确认已激活 `.venv` 且安装 `requirements.txt`
 - **端口占用**：释放 `3000/5173` 后重启
 - **数据异常**：检查 `server/data/elderly_monitoring.db` 是否存在并可读
+
+## 页面预览（README 直看）
+
+### 前端页面
+
+#### 登录页
+![前端-登录页](docs/readme-images/fe-login.png)
+
+#### 首页
+![前端-首页](docs/readme-images/fe-home.png)
+
+#### 控制台
+![前端-控制台](docs/readme-images/fe-dashboard.png)
+
+#### 老年人列表
+![前端-老年人列表](docs/readme-images/fe-elderly-list.png)
+
+#### 老年人详情
+![前端-老年人详情](docs/readme-images/fe-elderly-detail.png)
+
+#### 医生管理
+![前端-医生管理](docs/readme-images/fe-doctors.png)
+
+#### 设备管理
+![前端-设备管理](docs/readme-images/fe-devices.png)
+
+#### 巡访计划
+![前端-巡访计划](docs/readme-images/fe-visit-plan.png)
+
+#### 告警中心
+![前端-告警中心](docs/readme-images/fe-alerts.png)
+
+#### 工单管理
+![前端-工单管理](docs/readme-images/fe-orders.png)
+
+#### 数据报表
+![前端-数据报表](docs/readme-images/fe-reports.png)
+
+#### 系统设置
+![前端-系统设置](docs/readme-images/fe-settings.png)
+
+#### AI 风险预警
+![前端-AI风险预警](docs/readme-images/fe-ai-risk-warning.png)
+
+#### AI 辅助诊断
+![前端-AI辅助诊断](docs/readme-images/fe-ai-diagnosis.png)
+
+### 后端可视化管理页面
+
+#### 后端-老人模块
+![后端-老人模块](docs/readme-images/be-admin-elderly.png)
+
+#### 后端-医生模块
+![后端-医生模块](docs/readme-images/be-admin-doctors.png)
+
+#### 后端-设备模块
+![后端-设备模块](docs/readme-images/be-admin-devices.png)
+
+#### 后端-告警模块
+![后端-告警模块](docs/readme-images/be-admin-alerts.png)
+
+#### 后端-工单模块
+![后端-工单模块](docs/readme-images/be-admin-orders.png)
+
+#### 后端-巡访模块
+![后端-巡访模块](docs/readme-images/be-admin-visits.png)
+
+
